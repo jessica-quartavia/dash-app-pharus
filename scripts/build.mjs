@@ -37,7 +37,7 @@ if (failed) {
 }
 
 await mkdir(dist, { recursive: true });
-for (const item of ["index.html", "favicon.svg", "css", "js", "lib", "api"]) {
+for (const item of ["index.html", "favicon.svg", "pharus_logo.png", "css", "js", "lib", "api"]) {
   await cp(join(root, item), join(dist, item), { recursive: true });
 }
 

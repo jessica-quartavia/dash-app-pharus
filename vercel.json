@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!api/|css/|js/|lib/|favicon.svg).*)",
+      "source": "/((?!api/|css/|js/|lib/|favicon.svg|pharus_logo.png).*)",
       "destination": "/index.html"
     }
   ]
