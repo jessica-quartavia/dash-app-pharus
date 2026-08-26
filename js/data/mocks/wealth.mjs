@@ -1,0 +1,37 @@
+/** Patrimônio cadastrado no App — valores em BRL. Ausência = cliente sem cadastro financeiro. */
+export const WEALTH_BY_CLIENT = {
+  "PH-1042": { equities: 180000, fixedIncome: 320000, funds: 210000, pensions: 95000, otherInvestments: 40000, realEstate: 890000, movable: 65000, consortia: 0, financings: 240000, loans: 18000 },
+  "PH-1108": { equities: 420000, fixedIncome: 180000, funds: 150000, pensions: 60000, otherInvestments: 25000, realEstate: 620000, movable: 40000, consortia: 30000, financings: 180000, loans: 0 },
+  "PH-1180": { equities: 55000, fixedIncome: 90000, funds: 40000, pensions: 20000, otherInvestments: 0, realEstate: 480000, movable: 22000, consortia: 0, financings: 310000, loans: 12000 },
+  "PH-1215": { equities: 0, fixedIncome: 45000, funds: 0, pensions: 15000, otherInvestments: 8000, realEstate: 0, movable: 18000, consortia: 0, financings: 0, loans: 22000 },
+  "PH-1266": { equities: 760000, fixedIncome: 540000, funds: 380000, pensions: 210000, otherInvestments: 90000, realEstate: 1450000, movable: 120000, consortia: 0, financings: 0, loans: 0 },
+  "PH-1301": { equities: 110000, fixedIncome: 70000, funds: 35000, pensions: 0, otherInvestments: 12000, realEstate: 350000, movable: 15000, consortia: 0, financings: 190000, loans: 8000 },
+  "PH-1344": { equities: 240000, fixedIncome: 160000, funds: 90000, pensions: 80000, otherInvestments: 20000, realEstate: 780000, movable: 35000, consortia: 45000, financings: 220000, loans: 0 },
+  "PH-1422": { equities: 95000, fixedIncome: 210000, funds: 70000, pensions: 40000, otherInvestments: 15000, realEstate: 520000, movable: 28000, consortia: 0, financings: 150000, loans: 25000 },
+  "PH-1477": { equities: 20000, fixedIncome: 35000, funds: 0, pensions: 0, otherInvestments: 5000, realEstate: 0, movable: 12000, consortia: 0, financings: 0, loans: 9000 },
+  "PH-1510": { equities: 510000, fixedIncome: 430000, funds: 260000, pensions: 180000, otherInvestments: 70000, realEstate: 980000, movable: 55000, consortia: 0, financings: 120000, loans: 0 },
+  "PH-1603": { equities: 80000, fixedIncome: 125000, funds: 45000, pensions: 30000, otherInvestments: 0, realEstate: 410000, movable: 19000, consortia: 20000, financings: 200000, loans: 15000 },
+  "PH-1648": { equities: 300000, fixedIncome: 190000, funds: 110000, pensions: 75000, otherInvestments: 28000, realEstate: 640000, movable: 32000, consortia: 0, financings: 160000, loans: 0 },
+  "PH-1692": { equities: 150000, fixedIncome: 280000, funds: 130000, pensions: 90000, otherInvestments: 18000, realEstate: 870000, movable: 48000, consortia: 0, financings: 280000, loans: 20000 },
+  "PH-1780": { equities: 60000, fixedIncome: 85000, funds: 25000, pensions: 18000, otherInvestments: 7000, realEstate: 390000, movable: 16000, consortia: 0, financings: 170000, loans: 11000 },
+  "PH-1866": { equities: 15000, fixedIncome: 40000, funds: 10000, pensions: 0, otherInvestments: 0, realEstate: 260000, movable: 9000, consortia: 0, financings: 210000, loans: 6000 },
+  "PH-1901": { equities: 220000, fixedIncome: 140000, funds: 80000, pensions: 50000, otherInvestments: 22000, realEstate: 0, movable: 27000, consortia: 35000, financings: 0, loans: 14000 },
+  "PH-1960": { equities: 175000, fixedIncome: 95000, funds: 60000, pensions: 40000, otherInvestments: 10000, realEstate: 530000, movable: 21000, consortia: 0, financings: 140000, loans: 0 },
+  "PH-1988": { equities: 390000, fixedIncome: 260000, funds: 180000, pensions: 110000, otherInvestments: 45000, realEstate: 720000, movable: 38000, consortia: 0, financings: 90000, loans: 0 },
+  "PH-2012": { equities: 70000, fixedIncome: 110000, funds: 30000, pensions: 25000, otherInvestments: 8000, realEstate: 450000, movable: 14000, consortia: 0, financings: 230000, loans: 19000 },
+};
+
+export const WEALTH_MONTHLY = [
+  { month: "2025-09", total: 11800000 },
+  { month: "2025-10", total: 12150000 },
+  { month: "2025-11", total: 12420000 },
+  { month: "2025-12", total: 12680000 },
+  { month: "2026-01", total: 12940000 },
+  { month: "2026-02", total: 13210000 },
+  { month: "2026-03", total: 13560000 },
+  { month: "2026-04", total: 13890000 },
+  { month: "2026-05", total: 14120000 },
+  { month: "2026-06", total: 14480000 },
+  { month: "2026-07", total: 14830000 },
+  { month: "2026-08", total: 15170000 },
+];

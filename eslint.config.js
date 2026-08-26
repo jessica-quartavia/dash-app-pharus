@@ -1,0 +1,41 @@
+export default [
+  {
+    ignores: ["dist/**", "node_modules/**"],
+  },
+  {
+    files: ["js/**/*.{js,mjs}", "lib/**/*.mjs", "api/**/*.js", "scripts/**/*.mjs", "tests/**/*.mjs"],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: "module",
+      globals: {
+        window: "readonly",
+        document: "readonly",
+        location: "readonly",
+        history: "readonly",
+        sessionStorage: "readonly",
+        localStorage: "readonly",
+        fetch: "readonly",
+        Headers: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        AbortController: "readonly",
+        CustomEvent: "readonly",
+        console: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        queueMicrotask: "readonly",
+        process: "readonly",
+        Request: "readonly",
+        Response: "readonly",
+        Buffer: "readonly",
+      },
+    },
+    rules: {
+      "no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "no-undef": "error",
+      "no-shadow": "off",
+      eqeqeq: ["error", "always", { null: "ignore" }],
+      "no-var": "error",
+    },
+  },
+];

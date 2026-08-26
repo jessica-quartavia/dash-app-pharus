@@ -1,0 +1,20 @@
+{
+  "name": "dash-app-pharus",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Dash App Pharus — portal analítico interno da QuartaVia",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "start": "node scripts/dev-server.mjs",
+    "lint": "eslint js lib api scripts tests",
+    "test": "node --test tests/auth/corporate-email.test.mjs tests/auth/oauth-redirect.test.mjs tests/auth/auth-config.test.mjs tests/filters/apply-filters.test.mjs tests/filters/date-range-picker.test.mjs tests/utils/sort.test.mjs tests/utils/format-currency.test.mjs tests/app-pharus/kpi-status.test.mjs tests/app-pharus/official-client.test.mjs tests/app-pharus/clients-page.test.mjs tests/app-pharus/api-json.test.mjs tests/app-pharus/mechanisms.test.mjs",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "eslint": "^9.33.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4"
+  }
+}
