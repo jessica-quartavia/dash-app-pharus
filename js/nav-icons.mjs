@@ -9,6 +9,7 @@ const ICONS = {
   jornada: `<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="7" r="2.2"/><circle cx="18" cy="12" r="2.2"/><circle cx="8" cy="18" r="2.2"/><path d="M8 8.8c2 3 5 2.4 7.8 2.4M16.2 13.8c-2.2 1.6-5.2 2.4-6.4 2.6"/></svg>`,
   pagamentos: `<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h4"/></svg>`,
   qualidade: `<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 5 6v6c0 4.2 2.9 7.4 7 8.6 4.1-1.2 7-4.4 7-8.6V6l-7-3z"/><path d="m8.8 12 2.1 2.1 4.3-4.4"/></svg>`,
+  utilizacao_app: `<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10 6h4M12 17.5h.01"/></svg>`,
 };
 
 export function navIcon(pageId) {

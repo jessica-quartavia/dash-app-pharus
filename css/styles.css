@@ -59,6 +59,82 @@
 
   --container-max: 1280px;
   --container-max-wide: 1400px;
+
+  --chart-bar: var(--primary);
+  --chart-grid: var(--border);
+  --chart-muted: var(--muted);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--muted);
+  --color-critical: var(--color-destructive);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-black: #f5f5f5;
+  --color-white: #141414;
+  --color-off-white: #0f0f0f;
+  --color-hero: #fafafa;
+  --color-muted: #a3a3a3;
+  --color-border: #2e2e2e;
+
+  --background: #0a0a0a;
+  --foreground: #f5f5f5;
+  --surface: #141414;
+  --surface-secondary: #1a1a1a;
+  --surface-hero: #fafafa;
+  --border: #2e2e2e;
+  --muted: #a3a3a3;
+
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 8px 24px rgb(0 0 0 / 0.45);
+  --shadow-hover: 0 2px 8px rgb(0 0 0 / 0.45), 0 12px 28px rgb(0 0 0 / 0.5);
+
+  --chart-bar: #e85d3a;
+  --chart-grid: #333333;
+  --chart-muted: #a3a3a3;
+}
+
+html[data-theme="dark"] .badge-success {
+  background: rgb(34 164 90 / 0.18);
+}
+
+html[data-theme="dark"] .badge-warning {
+  background: rgb(209 132 38 / 0.18);
+}
+
+html[data-theme="dark"] .badge-danger {
+  background: rgb(234 108 76 / 0.18);
+}
+
+html[data-theme="dark"] .badge-tier-1 {
+  background: rgb(201 162 39 / 0.2);
+  color: #e8c547;
+  border-color: rgb(201 162 39 / 0.35);
+}
+
+html[data-theme="dark"] .badge-tier-2 {
+  background: rgb(232 93 58 / 0.18);
+  color: #f0a088;
+  border-color: rgb(232 93 58 / 0.35);
+}
+
+html[data-theme="dark"] .badge-tier-3 {
+  background: rgb(115 115 115 / 0.22);
+  color: #d4d4d4;
+}
+
+html[data-theme="dark"] .badge-tier-4 {
+  background: rgb(75 85 99 / 0.28);
+  color: #cbd5e1;
+}
+
+html[data-theme="dark"] .scroll-top-btn {
+  background: rgb(20 20 20 / 0.94);
+}
+
+html[data-theme="dark"] .btn-secondary:hover {
+  background: var(--surface-secondary);
 }
 
 html {
@@ -142,6 +218,17 @@ p {
 .text-muted,
 .note-muted {
   color: var(--muted);
+}
+
+.subsection-title {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.subsection-title:first-child {
+  margin-top: 0;
 }
 
 .font-mono {
@@ -249,6 +336,36 @@ p {
 .badge-danger {
   background: #fdecea;
   color: var(--color-destructive);
+}
+
+.badge-tier-1 {
+  background: #fbf5e4;
+  color: #8a6d12;
+  border-color: #ead9b8;
+}
+
+.badge-tier-2 {
+  background: #fdeee9;
+  color: #b84328;
+  border-color: #f5cfc4;
+}
+
+.badge-tier-3 {
+  background: var(--surface-secondary);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.badge-tier-4 {
+  background: #eef1f4;
+  border-color: var(--border);
+  color: #4b5563;
+}
+
+.badge-debts {
+  background: #fdecea;
+  color: var(--color-destructive);
+  border-color: #f5cfc4;
 }
 
 .input,

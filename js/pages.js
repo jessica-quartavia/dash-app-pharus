@@ -108,6 +108,17 @@ export const PAGES = [
     implemented: true,
   },
   {
+    id: "utilizacao_app",
+    hash: "utilizacao-app",
+    aliases: ["app-usage", "usage"],
+    group: "app",
+    navLabel: "Utilização do App",
+    title: "Utilização do App",
+    eyebrow: "App Pharus",
+    description: "Telemetria e uso efetivo do aplicativo via Expo/EAS, separada da base de clientes no Supabase.",
+    implemented: true,
+  },
+  {
     id: "qualidade",
     hash: "qualidade",
     aliases: ["quality"],

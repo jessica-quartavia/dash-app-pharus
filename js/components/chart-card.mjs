@@ -1,6 +1,6 @@
 import { escapeHtml } from "../utils/escape.mjs";
 
-export function chartCard({ title, subtitle = "", body, featured = false, quiet = false }) {
+export function chartCard({ title, subtitle = "", body, footer = "", featured = false, quiet = false }) {
   const classes = ["chart-card"];
   if (featured) classes.push("chart-card-featured");
   if (quiet) classes.push("chart-card-quiet");
@@ -8,6 +8,7 @@ export function chartCard({ title, subtitle = "", body, featured = false, quiet 
     <h3>${escapeHtml(title)}</h3>
     ${subtitle ? `<p class="chart-card-subtitle">${escapeHtml(subtitle)}</p>` : ""}
     <div class="chart-card-body">${body}</div>
+    ${footer ? `<p class="chart-card-footnote">${escapeHtml(footer)}</p>` : ""}
   </article>`;
 }
 

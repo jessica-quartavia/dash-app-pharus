@@ -4,7 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dash App Pharus</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <meta name="description" content="Portal analítico interno da QuartaVia para utilização e cobertura do App Pharus." />
+    <meta property="og:title" content="Dash App Pharus" />
+    <meta property="og:description" content="Análise da utilização e cobertura do App Pharus pela QuartaVia." />
+    <meta property="og:image" content="/pharus-favicon.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Dash App Pharus" />
+    <meta name="twitter:description" content="Análise da utilização e cobertura do App Pharus pela QuartaVia." />
+    <meta name="twitter:image" content="/pharus-favicon.png" />
+    <link rel="icon" href="/pharus-favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/pharus-favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -51,6 +61,7 @@
     <div id="portal-root" hidden>
       <div class="nav-backdrop" id="nav-backdrop"></div>
       <aside class="sidebar" id="sidebar">
+        <div class="sidebar-theme" id="sidebar-theme"></div>
         <button
           type="button"
           class="sidebar-collapse-toggle"
@@ -76,6 +87,22 @@
           </div>
         </div>
         <nav id="sidebar-nav" class="sidebar-nav" aria-label="Navegação principal"></nav>
+        <div class="sidebar-footer" id="sidebar-footer">
+          <div class="sidebar-auth" aria-label="Conta do usuário">
+            <span class="sidebar-auth-avatar" aria-hidden="true">
+              <img id="auth-user-avatar" alt="" width="32" height="32" hidden />
+              <span id="auth-user-initial">U</span>
+            </span>
+            <div class="sidebar-auth-meta">
+              <strong id="auth-user-name" hidden></strong>
+              <span id="auth-user-email"></span>
+            </div>
+            <button class="btn btn-ghost sidebar-sign-out" id="auth-sign-out" type="button" title="Sair">
+              <span class="sidebar-sign-out-icon" aria-hidden="true">↪</span>
+              <span class="sidebar-sign-out-label">Sair</span>
+            </button>
+          </div>
+        </div>
       </aside>
 
       <div class="portal-main">
@@ -90,14 +117,6 @@
           >
             Menu
           </button>
-          <div class="topbar-user">
-            <img id="auth-user-avatar" alt="" width="32" height="32" hidden />
-            <div class="topbar-user-meta">
-              <strong id="auth-user-name" hidden></strong>
-              <span id="auth-user-email"></span>
-            </div>
-            <button class="btn btn-secondary" id="auth-sign-out" type="button">Sair</button>
-          </div>
         </header>
 
         <p id="demo-banner" class="demo-banner" hidden>

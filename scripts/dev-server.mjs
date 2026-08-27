@@ -17,7 +17,7 @@ const TYPES = {
   ".mjs": "text/javascript; charset=utf-8",
   ".svg": "image/svg+xml",
   ".json": "application/json; charset=utf-8",
-  ".ico": "image/x-icon",
+  ".png": "image/png",
 };
 
 const server = createServer(async (req, res) => {
@@ -27,6 +27,7 @@ const server = createServer(async (req, res) => {
     "/api/overview": "../api/overview.js",
     "/api/clients": "../api/clients.js",
     "/api/mechanisms": "../api/mechanisms.js",
+    "/api/expo/usage": "../api/expo/usage.js",
   };
 
   if (apiHandlers[url.pathname]) {

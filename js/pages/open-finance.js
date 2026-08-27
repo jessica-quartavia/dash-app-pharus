@@ -1,6 +1,7 @@
 import { chartCard, chartGrid } from "../components/chart-card.mjs";
 import { donut, dualColumns, hBars, monthColumns } from "../components/charts.mjs";
-import { dataTable, tablePanel } from "../components/data-table.mjs";
+import { openOpenFinanceDrawer } from "../components/domain-drawers.mjs";
+import { mountInteractiveTable } from "../components/interactive-table.mjs";
 import { kpiCard, kpiRow } from "../components/kpi-card.mjs";
 import { methodologyBanner, sectionBlock } from "../components/page-kit.mjs";
 import { statusBadge } from "../components/status-badge.mjs";
@@ -10,11 +11,29 @@ import { getOpenFinancePage } from "../services/dashboard-service.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
 import { formatDateTime, formatNumber } from "../utils/format.mjs";
 
+const ofTable = mountInteractiveTable("of-table-host", {
+  defaultState: { sortKey: "clientName", sortDir: "asc" },
+  searchPlaceholder: "Buscar cliente ou instituição",
+  title: (rows) => `${formatNumber(rows.length)} conexões`,
+  rowIdKey: "id",
+  columns: [
+    { key: "clientName", label: "Cliente", sortable: true, value: (row) => escapeHtml(row.clientName) },
+    { key: "institution", label: "Instituição", sortable: true, value: (row) => escapeHtml(row.institution) },
+    { key: "result", label: "Status", sortable: true, value: (row) => statusBadge(row.result) },
+    { key: "accounts", label: "Contas", sortable: true, numeric: true, value: (row) => formatNumber(row.accounts) },
+    { key: "lastSyncAt", label: "Última sincronização", sortable: true, value: (row) => formatDateTime(row.lastSyncAt) },
+    { key: "health", label: "Situação", sortable: true, value: (row) => statusBadge(row.health) },
+  ],
+  onRowClick: (row) => openOpenFinanceDrawer(row),
+});
+
 export function bootOpenFinance() {
   mountPage({
     pageId: "open_finance",
     load: getOpenFinancePage,
-    render: (data) => `
+    render: (data) => {
+      queueMicrotask(() => ofTable.mount({ rows: data.rows || [] }));
+      return `
       ${methodologyBanner("Saúde das integrações usa o status da última sincronização de demonstração.")}
       ${sectionBlock({
         id: "sec-of-kpis",
@@ -56,21 +75,10 @@ export function bootOpenFinance() {
       ${sectionBlock({
         id: "sec-of-table",
         title: "4. Conexões",
-        body: tablePanel({
-          title: "Situação por cliente e instituição",
-          table: dataTable({
-            columns: [
-              { label: "Cliente", value: (row) => escapeHtml(row.clientName) },
-              { label: "Instituição", value: (row) => escapeHtml(row.institution) },
-              { label: "Status", value: (row) => statusBadge(row.result) },
-              { label: "Contas", numeric: true, value: (row) => formatNumber(row.accounts) },
-              { label: "Última sincronização", value: (row) => formatDateTime(row.lastSyncAt) },
-              { label: "Situação", value: (row) => statusBadge(row.health) },
-            ],
-            rows: data.rows,
-          }),
-        }),
+        lead: "Clique em uma linha para ver detalhes da conexão.",
+        body: `<div id="of-table-host"><p class="placeholder-note">Carregando tabela…</p></div>`,
       })}
-    `,
+    `;
+    },
   });
 }

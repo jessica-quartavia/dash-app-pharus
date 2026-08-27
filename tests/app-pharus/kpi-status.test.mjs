@@ -11,9 +11,6 @@ describe("formatKpiValue status", () => {
   });
 
   it("não inventa número para dado indisponível", () => {
-    assert.equal(
-      formatKpiValue({ status: "unavailable", value: "Dados indisponíveis" }),
-      "Dados indisponíveis",
-    );
+    assert.equal(formatKpiValue({ status: "unavailable" }), "Não disponível");
   });
 });

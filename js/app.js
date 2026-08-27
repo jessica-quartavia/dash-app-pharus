@@ -1,5 +1,8 @@
 import { bootAuth } from "./auth.mjs";
 import { bootScrollToTop } from "./components/scroll-to-top.mjs";
+import { initTheme } from "./lib/theme.mjs";
+
+initTheme();
 
 let navigationReady = false;
 
@@ -17,6 +20,7 @@ async function startPortal() {
     () => import("./pages/formularios.js").then((m) => m.bootFormularios()),
     () => import("./pages/jornada.js").then((m) => m.bootJornada()),
     () => import("./pages/pagamentos.js").then((m) => m.bootPagamentos()),
+    () => import("./pages/utilizacao-app.js").then((m) => m.bootUtilizacaoApp()),
     () => import("./pages/qualidade-dados.js").then((m) => m.bootQualidade()),
   ];
 

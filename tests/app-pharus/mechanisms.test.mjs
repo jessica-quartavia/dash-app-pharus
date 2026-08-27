@@ -172,12 +172,37 @@ describe("tabela de mecanismos", () => {
 });
 
 describe("filtros de mecanismos", () => {
-  it("não exibe Possui mecanismos e mantém Período e Responsável / EP", () => {
+  it("não exibe Possui mecanismos e mantém busca, Período e Responsável / EP", () => {
     const clientes = PAGE_FILTERS().clientes.find((field) => field.key === "hasMechanisms");
     const mecanismos = PAGE_FILTERS().mecanismos;
     assert.equal(clientes.label, "Possui mecanismos");
     assert.equal(mecanismos.some((field) => field.key === "hasMechanisms"), false);
+    assert.equal(mecanismos.some((field) => field.key === "search"), true);
     assert.equal(mecanismos.some((field) => field.key === "period"), true);
     assert.equal(mecanismos.some((field) => field.key === "advisor"), true);
+  });
+
+  it("filtra por advisorId sem excluir população quando Todos", () => {
+    const clients = [
+      { id: "u1", name: "A", advisorId: "ep-1", registeredAt: "2026-01-01", hasMechanisms: true, mechanismsImplemented: 2 },
+      { id: "u2", name: "B", advisorId: null, registeredAt: "2026-01-01", hasMechanisms: false, mechanismsImplemented: 0 },
+      { id: "u3", name: "C", advisorId: "ep-1", registeredAt: "2026-01-01", hasMechanisms: true, mechanismsImplemented: 1 },
+    ];
+    const payload = {
+      catalog: [{ id: "m1", name: "M1", category: "Cat", description: null }],
+      implementations: [
+        { user_id: "u1", mechanism_id: "m1", created_at: "2026-08-01T00:00:00.000Z" },
+        { user_id: "u3", mechanism_id: "m1", created_at: "2026-08-02T00:00:00.000Z" },
+      ],
+      clients,
+      populationTotal: 3,
+    };
+    const all = presentMechanismsPage(payload, { period: "all", advisor: "all" });
+    const filtered = presentMechanismsPage(payload, { period: "all", advisor: "ep-1" });
+    assert.equal(all.recorteTotal, 3);
+    assert.equal(filtered.recorteTotal, 2);
+    assert.equal(filtered.kpis.find((kpi) => kpi.key === "with").value, 2);
+    assert.equal(filtered.rows.length, 2);
+    assert.equal(filtered.rows.every((row) => row.advisorId === "ep-1"), true);
   });
 });

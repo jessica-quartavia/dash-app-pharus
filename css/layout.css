@@ -53,7 +53,7 @@ body.sidebar-collapsed #portal-root {
 
 .sidebar-collapse-toggle {
   position: absolute;
-  top: 10px;
+  top: 52px;
   right: 8px;
   width: 28px;
   height: 28px;
@@ -88,7 +88,7 @@ body.sidebar-collapsed .sidebar-collapse-icon {
 }
 
 body.sidebar-collapsed .sidebar {
-  padding-inline: 6px;
+  padding: 44px 6px var(--space-3);
   overflow: hidden;
 }
 
@@ -122,8 +122,22 @@ body.sidebar-collapsed .sidebar-nav {
 
 body.sidebar-collapsed .sidebar-collapse-toggle {
   position: static;
-  margin: 6px auto 10px;
+  margin: 0 auto 8px;
   flex-shrink: 0;
+}
+
+.sidebar-theme {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  z-index: 2;
+}
+
+body.sidebar-collapsed .sidebar-theme {
+  left: 6px;
+  right: 6px;
+  display: flex;
+  justify-content: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -178,6 +192,91 @@ body.sidebar-collapsed .sidebar-collapse-toggle {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+.sidebar-footer {
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+.sidebar-auth {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: var(--space-2) 2px 0;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-auth-avatar {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-secondary);
+  color: var(--foreground);
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.sidebar-auth-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-auth-meta {
+  min-width: 0;
+}
+
+.sidebar-auth-meta strong,
+.sidebar-auth-meta span {
+  display: block;
+  overflow: hidden;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-auth-meta span {
+  color: var(--muted);
+}
+
+.sidebar-sign-out {
+  min-width: 34px;
+  min-height: 34px;
+  padding: 6px 8px;
+  gap: 5px;
+}
+
+.sidebar-sign-out-icon {
+  display: none;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+body.sidebar-collapsed .sidebar-auth {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 6px;
+  padding-inline: 0;
+}
+
+body.sidebar-collapsed .sidebar-auth-meta,
+body.sidebar-collapsed .sidebar-sign-out-label {
+  display: none;
+}
+
+body.sidebar-collapsed .sidebar-sign-out-icon {
+  display: inline;
 }
 
 .nav-group-label,
@@ -291,7 +390,7 @@ body.sidebar-collapsed .sidebar-collapse-toggle {
 }
 
 .topbar {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-2);
@@ -312,40 +411,6 @@ body.sidebar-collapsed .sidebar-collapse-toggle {
   border-radius: var(--radius);
   padding: 8px 12px;
   cursor: pointer;
-}
-
-.topbar-user {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.topbar-user img {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-pill);
-  object-fit: cover;
-  border: 1px solid var(--border);
-}
-
-.topbar-user-meta {
-  min-width: 0;
-}
-
-.topbar-user-meta strong,
-.topbar-user-meta span {
-  display: block;
-  font-size: 0.8125rem;
-  line-height: 1.3;
-}
-
-.topbar-user-meta span {
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 220px;
 }
 
 .page {
@@ -451,6 +516,10 @@ body.sidebar-collapsed .sidebar-collapse-toggle {
     display: none;
   }
 
+  .topbar {
+    display: flex;
+  }
+
   body.sidebar-collapsed .sidebar-brand,
   body.sidebar-collapsed .sidebar-nav {
     opacity: 1;
@@ -463,6 +532,29 @@ body.sidebar-collapsed .sidebar-collapse-toggle {
   body.sidebar-collapsed .sidebar {
     width: min(280px, 86vw);
     padding: var(--space-3) var(--space-2) var(--space-4);
+  }
+
+  body.sidebar-collapsed .sidebar-theme {
+    left: auto;
+    right: 8px;
+  }
+
+  body.sidebar-collapsed .sidebar-auth {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    justify-items: stretch;
+    padding-inline: 2px;
+  }
+
+  body.sidebar-collapsed .sidebar-auth-meta {
+    display: block;
+  }
+
+  body.sidebar-collapsed .sidebar-sign-out-label {
+    display: inline;
+  }
+
+  body.sidebar-collapsed .sidebar-sign-out-icon {
+    display: none;
   }
 
   .nav-toggle {
@@ -507,10 +599,6 @@ body.sidebar-collapsed .sidebar-collapse-toggle {
 
   .page-header-row {
     flex-direction: column;
-  }
-
-  .topbar-user-meta {
-    display: none;
   }
 
   .demo-banner {

@@ -1,3 +1,6 @@
+/**
+ * Filtros compartilhados — população oficial filtrada de forma consistente.
+ */
 import { resolveAppliedRange } from "./period.mjs";
 
 export { DATE_RANGE_PRESETS as PERIOD_PRESETS } from "./period.mjs";
@@ -42,7 +45,7 @@ export function matchesSelect(actual, expected) {
   return String(actual) === String(expected);
 }
 
-export function filterClients(clients, filters, { dateField = "lastActivityAt" } = {}) {
+export function filterClients(clients, filters, { dateField = "registeredAt" } = {}) {
   const range = resolvePeriodRange(filters);
   return (clients || []).filter((client) => {
     if (!matchesSearch(client, filters.search)) return false;
@@ -52,7 +55,16 @@ export function filterClients(clients, filters, { dateField = "lastActivityAt" }
     if (!matchesSelect(client.hasMechanisms, filters.hasMechanisms)) return false;
     if (!matchesSelect(client.hasWealth, filters.hasWealth)) return false;
     if (!matchesSelect(client.journeyStage, filters.journeyStage)) return false;
-    if (!matchesSelect(client.advisor, filters.advisor)) return false;
+    if (filters.advisor && filters.advisor !== "all") {
+      if (String(client.advisorId || "") !== String(filters.advisor)) return false;
+    }
+    if (filters.segment && filters.segment !== "all") {
+      if (String(client.tier || "") !== String(filters.segment)) return false;
+    }
+    if (filters.debts && filters.debts !== "all") {
+      if (filters.debts === "yes" && !client.isDebts) return false;
+      if (filters.debts === "no" && client.isDebts) return false;
+    }
     if (filters.client && filters.client !== "all" && client.id !== filters.client) return false;
     return true;
   });
@@ -71,6 +83,8 @@ export function defaultFilters(overrides = {}) {
     hasMechanisms: "all",
     hasWealth: "all",
     journeyStage: "all",
+    segment: "all",
+    debts: "all",
     advisor: "all",
     client: "all",
     ...overrides,

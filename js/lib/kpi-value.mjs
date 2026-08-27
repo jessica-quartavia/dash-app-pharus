@@ -3,7 +3,7 @@ import { formatCurrencyCompact, formatDate, formatDateTime, formatNumber, format
 
 export function formatKpiValue(kpi) {
   if (kpi.status === "pending" || kpi.status === "unavailable") {
-    return escapeHtml(kpi.value || (kpi.status === "pending" ? "Regra pendente" : "Dados indisponíveis"));
+    return escapeHtml(kpi.value || (kpi.status === "pending" ? "Regra pendente" : "Não disponível"));
   }
   if (kpi.kind === "currency") return escapeHtml(formatCurrencyCompact(kpi.value));
   if (kpi.kind === "percent") return escapeHtml(formatPercent(kpi.value, { digits: kpi.digits }));

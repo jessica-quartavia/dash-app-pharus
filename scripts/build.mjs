@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, writeFile, copyFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -37,9 +37,10 @@ if (failed) {
 }
 
 await mkdir(dist, { recursive: true });
-for (const item of ["index.html", "favicon.svg", "pharus_logo.png", "css", "js", "lib", "api"]) {
+for (const item of ["index.html", "pharus_logo.png", "css", "js", "lib", "api"]) {
   await cp(join(root, item), join(dist, item), { recursive: true });
 }
+await copyFile(join(root, "pharus_logo.png"), join(dist, "pharus-favicon.png"));
 
 await mkdir(dirname(join(dist, "package.json")), { recursive: true });
 await writeFile(join(dist, ".build-ok"), new Date().toISOString());

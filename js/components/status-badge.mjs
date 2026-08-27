@@ -34,3 +34,19 @@ export function yesNoBadge(value) {
   if (value == null) return statusBadge("Dados indisponíveis");
   return statusBadge(value ? "Sim" : "Não");
 }
+
+export function tierBadge(tier, isDebts = null) {
+  const label = tier || "Dados insuficientes";
+  const cls =
+    label === "Tier 1"
+      ? "badge-tier-1"
+      : label === "Tier 2"
+        ? "badge-tier-2"
+        : label === "Tier 3"
+          ? "badge-tier-3"
+          : label === "Tier 4"
+            ? "badge-tier-4"
+            : "badge-muted";
+  const debts = isDebts ? `<span class="badge badge-debts">DEBTS</span>` : "";
+  return `<span class="badge ${cls}">${escapeHtml(label)}</span>${debts ? ` ${debts}` : ""}`;
+}

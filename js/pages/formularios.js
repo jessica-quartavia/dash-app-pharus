@@ -1,6 +1,7 @@
 import { chartCard, chartGrid } from "../components/chart-card.mjs";
 import { donut, hBars, monthColumns } from "../components/charts.mjs";
-import { dataTable, tablePanel } from "../components/data-table.mjs";
+import { openFormDrawer } from "../components/domain-drawers.mjs";
+import { mountInteractiveTable } from "../components/interactive-table.mjs";
 import { kpiCard, kpiRow } from "../components/kpi-card.mjs";
 import { methodologyBanner, sectionBlock } from "../components/page-kit.mjs";
 import { statusBadge } from "../components/status-badge.mjs";
@@ -10,11 +11,29 @@ import { getFormsPage } from "../services/dashboard-service.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
 import { formatDate, formatPercent } from "../utils/format.mjs";
 
+const formsTable = mountInteractiveTable("forms-table-host", {
+  defaultState: { sortKey: "startedAt", sortDir: "desc" },
+  searchPlaceholder: "Buscar cliente ou formulário",
+  title: (rows) => `${rows.length} respostas`,
+  rowIdKey: "id",
+  columns: [
+    { key: "clientName", label: "Cliente", sortable: true, value: (row) => escapeHtml(row.clientName) },
+    { key: "formName", label: "Formulário", sortable: true, value: (row) => escapeHtml(row.formName) },
+    { key: "status", label: "Status", sortable: true, value: (row) => statusBadge(row.status) },
+    { key: "startedAt", label: "Data de início", sortable: true, value: (row) => formatDate(row.startedAt) },
+    { key: "completedAt", label: "Data de conclusão", sortable: true, value: (row) => formatDate(row.completedAt) },
+    { key: "progress", label: "Progresso", sortable: true, numeric: true, value: (row) => formatPercent(row.progress) },
+  ],
+  onRowClick: (row) => openFormDrawer(row),
+});
+
 export function bootFormularios() {
   mountPage({
     pageId: "formularios",
     load: getFormsPage,
-    render: (data) => `
+    render: (data) => {
+      queueMicrotask(() => formsTable.mount({ rows: data.rows || [] }));
+      return `
       ${methodologyBanner("Há pelo menos o quiz comportamental e o questionário de alinhamento.")}
       ${sectionBlock({
         id: "sec-form-kpis",
@@ -35,21 +54,10 @@ export function bootFormularios() {
       ${sectionBlock({
         id: "sec-form-table",
         title: "3. Respostas",
-        body: tablePanel({
-          title: "Status por cliente e formulário",
-          table: dataTable({
-            columns: [
-              { label: "Cliente", value: (row) => escapeHtml(row.clientName) },
-              { label: "Formulário", value: (row) => escapeHtml(row.formName) },
-              { label: "Status", value: (row) => statusBadge(row.status) },
-              { label: "Data de início", value: (row) => formatDate(row.startedAt) },
-              { label: "Data de conclusão", value: (row) => formatDate(row.completedAt) },
-              { label: "Progresso", numeric: true, value: (row) => formatPercent(row.progress) },
-            ],
-            rows: data.rows,
-          }),
-        }),
+        lead: "Clique em uma linha para ver detalhes da resposta.",
+        body: `<div id="forms-table-host"><p class="placeholder-note">Carregando tabela…</p></div>`,
       })}
-    `,
+    `;
+    },
   });
 }

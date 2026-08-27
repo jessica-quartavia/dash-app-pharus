@@ -1,6 +1,7 @@
 import { chartCard, chartGrid } from "../components/chart-card.mjs";
 import { donut, dualColumns, hBars } from "../components/charts.mjs";
-import { dataTable, tablePanel } from "../components/data-table.mjs";
+import { openMeetingDrawer } from "../components/domain-drawers.mjs";
+import { mountInteractiveTable } from "../components/interactive-table.mjs";
 import { kpiCard, kpiRow } from "../components/kpi-card.mjs";
 import { methodologyBanner, sectionBlock } from "../components/page-kit.mjs";
 import { statusBadge } from "../components/status-badge.mjs";
@@ -10,11 +11,29 @@ import { getMeetingsPage } from "../services/dashboard-service.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
 import { formatDate, formatNumber } from "../utils/format.mjs";
 
+const meetingsTable = mountInteractiveTable("meetings-table-host", {
+  defaultState: { sortKey: "date", sortDir: "desc" },
+  searchPlaceholder: "Buscar cliente, tipo ou responsável",
+  title: (rows) => `${formatNumber(rows.length)} reuniões`,
+  columns: [
+    { key: "clientName", label: "Cliente", sortable: true, value: (row) => escapeHtml(row.clientName) },
+    { key: "type", label: "Tipo", sortable: true, value: (row) => escapeHtml(row.type) },
+    { key: "date", label: "Data", sortable: true, value: (row) => formatDate(row.date) },
+    { key: "status", label: "Status", sortable: true, value: (row) => statusBadge(row.status) },
+    { key: "advisor", label: "Responsável", sortable: true, value: (row) => escapeHtml(row.advisor) },
+    { key: "score", label: "Avaliação", sortable: true, numeric: true, sortValue: (row) => row.score ?? -1, value: (row) => (row.score == null ? "Não informado" : `${row.score} de 5`) },
+    { key: "outputs", label: "Outputs", sortable: true, numeric: true, value: (row) => formatNumber(row.outputs) },
+  ],
+  onRowClick: (row) => openMeetingDrawer(row),
+});
+
 export function bootReunioes() {
   mountPage({
     pageId: "reunioes",
     load: getMeetingsPage,
-    render: (data) => `
+    render: (data) => {
+      queueMicrotask(() => meetingsTable.mount({ rows: data.rows || [] }));
+      return `
       ${methodologyBanner("Comparecimento = reuniões realizadas sobre o total agendado no recorte.")}
       ${sectionBlock({
         id: "sec-meet-kpis",
@@ -44,22 +63,10 @@ export function bootReunioes() {
       ${sectionBlock({
         id: "sec-meet-table",
         title: "3. Reuniões",
-        body: tablePanel({
-          title: `${formatNumber(data.rows.length)} registros`,
-          table: dataTable({
-            columns: [
-              { label: "Cliente", value: (row) => escapeHtml(row.clientName) },
-              { label: "Tipo", value: (row) => escapeHtml(row.type) },
-              { label: "Data", value: (row) => formatDate(row.date) },
-              { label: "Status", value: (row) => statusBadge(row.status) },
-              { label: "Responsável", value: (row) => escapeHtml(row.advisor) },
-              { label: "Avaliação", numeric: true, value: (row) => (row.score == null ? "Não informado" : `${row.score} de 5`) },
-              { label: "Outputs", numeric: true, value: (row) => formatNumber(row.outputs) },
-            ],
-            rows: data.rows,
-          }),
-        }),
+        lead: "Clique em uma reunião para ver detalhes no drawer.",
+        body: `<div id="meetings-table-host"><p class="placeholder-note">Carregando tabela…</p></div>`,
       })}
-    `,
+    `;
+    },
   });
 }

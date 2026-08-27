@@ -7,6 +7,7 @@ import {
   resolvePageFromHash,
 } from "./pages.js";
 import { initSidebarCollapse } from "./components/sidebar-collapse.mjs";
+import { mountThemeToggle } from "./lib/theme.mjs";
 import { navIcon } from "./nav-icons.mjs";
 
 const INTENDED_HASH_KEY = "qv:intendedHash";
@@ -152,6 +153,7 @@ function closeMobileNav() {
 export function bootNavigation() {
   renderSidebar();
   initSidebarCollapse();
+  mountThemeToggle(document.getElementById("sidebar-theme"));
 
   if (!navBound) {
     navBound = true;

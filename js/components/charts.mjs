@@ -79,7 +79,7 @@ export function donut(items) {
       return `<div><i style="background:${color}"></i>${escapeHtml(item.label)} — ${formatNumber(item.count)} (${formatPercent(item.percent)})</div>`;
     })
     .join("");
-  return `<div class="donut-wrap"><svg class="donut" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">${arcs}<circle cx="60" cy="60" r="28" fill="#ffffff"></circle></svg><div class="legend">${legend}</div></div>`;
+  return `<div class="donut-wrap"><svg class="donut" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">${arcs}<circle cx="60" cy="60" r="28" class="donut-hole"></circle></svg><div class="legend">${legend}</div></div>`;
 }
 
 function monthShortLabel(ym) {
@@ -89,6 +89,51 @@ function monthShortLabel(ym) {
   if (!y || idx < 0 || idx > 11) return ym;
   const label = `${names[idx]}/${String(y).slice(2)}`;
   return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function dayShortLabel(dateStr) {
+  const raw = String(dateStr || "").slice(0, 10);
+  const d = new Date(`${raw}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return raw;
+  const names = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  return `${dd} ${names[d.getUTCMonth()]}`;
+}
+
+function dayTooltipLabel(dateStr) {
+  const raw = String(dateStr || "").slice(0, 10);
+  const d = new Date(`${raw}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return raw;
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  return `${dd}/${mm}/${d.getUTCFullYear()}`;
+}
+
+export function dailyColumns(series, { valueKey = "count", titleSuffix = "usuários únicos", maxItems = 90 } = {}) {
+  const source = Array.isArray(series) ? series : [];
+  const list = maxItems && source.length > maxItems ? source.slice(-maxItems) : source;
+  if (!list.length) return `<p class="placeholder-note">Sem dados no período selecionado.</p>`;
+  const maxValue = Math.max(...list.map((item) => Number(item[valueKey]) || 0), 0);
+  const plotH = 180;
+  const useFit = list.length <= 14;
+  const wrapClass = useFit ? "acq-chart-scroll is-fit" : "acq-chart-scroll";
+  const colWidth = list.length <= 8 ? "minmax(52px, 1fr)" : "minmax(44px, 1fr)";
+  return `<div class="${wrapClass}"><div class="acq-chart-grid" style="grid-auto-columns:${colWidth}">${list
+    .map((item, idx) => {
+      const count = Number(item[valueKey]) || 0;
+      const heightPct = maxValue > 0 ? (count / maxValue) * 100 : 0;
+      const barPx = count > 0 ? Math.max(Math.round((heightPct / 100) * plotH), 6) : 0;
+      const latest = idx === list.length - 1;
+      const dateKey = item.date || item.label;
+      const label = dayShortLabel(dateKey);
+      const tooltip = `${dayTooltipLabel(dateKey)}\n${titleSuffix}: ${formatNumber(count)}`;
+      return `<div class="acq-col${latest ? " is-latest" : ""}" title="${escapeHtml(tooltip)}">
+        <div class="acq-col-value">${escapeHtml(formatNumber(count))}</div>
+        <div class="acq-col-bar" style="height:${barPx}px"></div>
+        <div class="acq-col-label">${escapeHtml(label)}</div>
+      </div>`;
+    })
+    .join("")}</div></div>`;
 }
 
 export function monthColumns(series, { valueKey = "count", titleSuffix = "clientes", format = "number", maxItems = null } = {}) {

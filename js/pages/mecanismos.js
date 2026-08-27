@@ -1,22 +1,55 @@
 import { chartCard, chartGrid } from "../components/chart-card.mjs";
 import { donut, hBars, monthColumns } from "../components/charts.mjs";
+import { openMechanismDrawer } from "../components/domain-drawers.mjs";
+import { mountInteractiveTable } from "../components/interactive-table.mjs";
 import { kpiCard, kpiRow } from "../components/kpi-card.mjs";
-import { openMechanismDrawer } from "../components/mechanism-drawer.mjs";
 import { methodologyBanner, sectionBlock } from "../components/page-kit.mjs";
 import { formatKpiValue } from "../lib/kpi-value.mjs";
-import {
-  bindMechanismsClientTable,
-  defaultMechanismsTableState,
-  renderMechanismsClientTable,
-} from "../lib/mechanisms-table.mjs";
 import { mountPage } from "../lib/page-runtime.mjs";
 import { getMechanismsPage } from "../services/app-pharus/mechanisms.mjs";
+import { escapeHtml } from "../utils/escape.mjs";
+import { formatDate, formatNumber } from "../utils/format.mjs";
 
 const KPI_ROW_PRIMARY = ["with", "implementations", "coverage", "available"];
 const KPI_ROW_SECONDARY = ["average", "without", "last"];
 
-let tableRows = [];
-let tableState = defaultMechanismsTableState();
+import { advisorField, periodField, searchField } from "../lib/filters/contracts.mjs";
+
+const clientTable = mountInteractiveTable("mech-client-table-host", {
+  defaultState: { sortKey: "mechanismsImplemented", sortDir: "desc" },
+  hideSearch: true,
+  title: (rows) => `${formatNumber(rows.length)} clientes no recorte`,
+  columns: [
+    {
+      key: "name",
+      label: "Cliente",
+      sortable: true,
+      sortValue: (row) => String(row.name || "").toLowerCase(),
+      value: (row) =>
+        `<strong>${escapeHtml(row.name)}</strong><div class="text-muted">${escapeHtml(row.email || row.id)}</div>`,
+    },
+    {
+      key: "mechanismsImplemented",
+      label: "Implementados",
+      sortable: true,
+      numeric: true,
+      value: (row) => formatNumber(row.mechanismsImplemented),
+    },
+    {
+      key: "firstMechanismAt",
+      label: "Primeiro mecanismo",
+      sortable: true,
+      value: (row) => formatDate(row.firstMechanismAt),
+    },
+    {
+      key: "lastMechanismAt",
+      label: "Último mecanismo",
+      sortable: true,
+      value: (row) => formatDate(row.lastMechanismAt),
+    },
+  ],
+  onRowClick: (client) => openMechanismDrawer(client),
+});
 
 function renderMechanismKpis(kpis) {
   const byKey = Object.fromEntries(kpis.map((kpi) => [kpi.key, kpi]));
@@ -47,28 +80,15 @@ function renderMechanismKpis(kpis) {
   );
 }
 
-function mountClientTable(data) {
-  tableRows = data.rows || [];
-  tableState = defaultMechanismsTableState();
-  const host = document.getElementById("mech-client-table-host");
-  if (!host) return;
-  host.innerHTML = renderMechanismsClientTable(tableRows, tableState, {
-    recorteTotal: data.recorteTotal,
-    officialTotal: data.officialTotal,
-  });
-  bindMechanismsClientTable(host, tableRows, tableState, {
-    onRowClick: (client) => openMechanismDrawer(client),
-  });
-}
-
 export function bootMecanismos() {
   mountPage({
     pageId: "mecanismos",
     filterNote:
-      "O período usa a data de cadastro. Responsável / EP filtra quando houver vínculo cadastrado. Os indicadores são recalculados sobre a população oficial do recorte.",
+      "O período usa a data de cadastro. Responsável / EP filtra clientes alocados em backoffice.internals_customers_allocations.",
     load: getMechanismsPage,
+    resolveFields: (data) => [searchField(), periodField(), advisorField(data?.advisors || [])],
     render: (data) => {
-      queueMicrotask(() => mountClientTable(data));
+      queueMicrotask(() => clientTable.mount({ rows: data.rows || [] }));
       return `
         ${methodologyBanner(data.methodology || "Mecanismos implementados na base oficial do App Pharus.")}
         ${sectionBlock({
@@ -89,7 +109,7 @@ export function bootMecanismos() {
         ${sectionBlock({
           id: "sec-mech-table",
           title: "3. Implementação por cliente",
-          lead: "Clique em um cliente para ver os mecanismos implementados.",
+          lead: "Use a busca na barra de filtros. Clique em um cliente para ver os mecanismos implementados.",
           body: `<div id="mech-client-table-host"><p class="placeholder-note">Carregando tabela…</p></div>`,
         })}
       `;

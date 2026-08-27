@@ -180,6 +180,7 @@ function cacheElements() {
   els.userEmail = $("auth-user-email");
   els.userName = $("auth-user-name");
   els.userAvatar = $("auth-user-avatar");
+  els.userInitial = $("auth-user-initial");
   els.signOut = $("auth-sign-out");
 }
 
@@ -273,6 +274,7 @@ function updateHeaderUser(user) {
   const email = user?.email || "";
   const name = userDisplayName(user);
   const avatar = userAvatarUrl(user);
+  const initial = (name || email).trim().charAt(0).toLocaleUpperCase("pt-BR") || "U";
 
   if (els.userEmail) {
     els.userEmail.textContent = email;
@@ -292,6 +294,10 @@ function updateHeaderUser(user) {
       els.userAvatar.hidden = true;
     }
   }
+  if (els.userInitial) {
+    els.userInitial.textContent = initial;
+    els.userInitial.hidden = Boolean(avatar);
+  }
 }
 
 function clearHeaderUser() {
@@ -306,6 +312,10 @@ function clearHeaderUser() {
   if (els.userAvatar) {
     els.userAvatar.removeAttribute("src");
     els.userAvatar.hidden = true;
+  }
+  if (els.userInitial) {
+    els.userInitial.textContent = "U";
+    els.userInitial.hidden = false;
   }
 }
 

@@ -111,6 +111,13 @@
   overflow: visible;
 }
 
+.filter-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: start;
+}
+
 .filter-bar label {
   display: flex;
   flex-direction: column;
@@ -157,8 +164,66 @@
 
 .page-filters.is-sticky-pinned {
   position: sticky;
-  top: 0;
+  top: var(--filter-sticky-top, 0px);
   z-index: var(--z-filter-sticky);
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-card);
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.filter-sticky-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+  min-height: 38px;
+  padding-inline: 4px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.filter-sticky-toggle input {
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-secondary);
+  box-shadow: none;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.filter-sticky-toggle input::before {
+  content: "";
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 2px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+  transition: transform 160ms ease;
+}
+
+.filter-sticky-toggle input:checked {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.filter-sticky-toggle input:checked::before {
+  transform: translateX(16px);
+}
+
+.filter-sticky-toggle input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .scroll-top-btn {
@@ -407,7 +472,51 @@
 .hbar-track span {
   display: block;
   height: 100%;
-  background: var(--foreground);
+  background: var(--chart-bar, var(--foreground));
+}
+
+.donut-hole {
+  fill: var(--surface);
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-secondary);
+  color: var(--muted);
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  color: var(--foreground);
+  background: var(--surface);
+}
+
+.theme-toggle-icon-moon {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-toggle-icon-sun {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-toggle-icon-moon {
+  display: inline;
+}
+
+.theme-toggle-label {
+  display: none;
 }
 
 .hbar-val {
@@ -959,6 +1068,50 @@
   line-height: 1.45;
 }
 
+.expo-source-banner {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+  border-left: 3px solid color-mix(in srgb, var(--primary) 55%, var(--border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+}
+
+.expo-source-banner-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.expo-source-banner-copy strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.expo-source-banner-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.chart-card-footnote {
+  margin: 0.65rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
 .sc-insight {
   border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
   border-left: 3px solid var(--primary);
@@ -1025,6 +1178,16 @@
   }
 }
 
+@media (max-width: 900px) {
+  .filter-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-sticky-toggle {
+    justify-self: end;
+  }
+}
+
 @media (max-width: 720px) {
   .kpi-row,
   .chart-grid,
@@ -1036,6 +1199,10 @@
 
   .filter-bar {
     grid-template-columns: 1fr;
+  }
+
+  .filter-sticky-toggle {
+    justify-self: start;
   }
 
   .filter-bar .filter-actions .btn {

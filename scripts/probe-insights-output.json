@@ -1,0 +1,493 @@
+{
+  "channels": [
+    {
+      "id": "019fb524-6721-7b4f-9008-2a8f6344ff0d",
+      "name": "production",
+      "updatedAt": "2026-07-30T22:28:11.940Z",
+      "branches": [
+        {
+          "id": "019fb524-663d-7749-81fc-c558df66d3aa",
+          "name": "production",
+          "runtimeVersion": null,
+          "runtimeVersions": []
+        }
+      ]
+    },
+    {
+      "id": "019fb524-56e3-7ea2-9e26-34ba52b5ab56",
+      "name": "preview",
+      "updatedAt": "2026-07-30T22:28:21.603Z",
+      "branches": [
+        {
+          "id": "019fb524-8d8f-7a59-87b1-5795cb571317",
+          "name": "homolog",
+          "runtimeVersion": "5a1af47a8a9f5cbc73b422ca878e93bad6f1c5c4",
+          "runtimeVersions": [
+            "5a1af47a8a9f5cbc73b422ca878e93bad6f1c5c4"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "019fb524-45ce-7829-953a-5e6e5b880a73",
+      "name": "development",
+      "updatedAt": "2026-07-30T22:28:03.404Z",
+      "branches": [
+        {
+          "id": "019fb4fb-739c-75d4-ae27-ce9c84d3eac3",
+          "name": "develop",
+          "runtimeVersion": "5a1af47a8a9f5cbc73b422ca878e93bad6f1c5c4",
+          "runtimeVersions": [
+            "5a1af47a8a9f5cbc73b422ca878e93bad6f1c5c4"
+          ]
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "channel": "preview",
+      "runtimeVersion": "5a1af47a8a9f5cbc73b422ca878e93bad6f1c5c4",
+      "source": "channel:view"
+    },
+    {
+      "channel": "development",
+      "runtimeVersion": "5a1af47a8a9f5cbc73b422ca878e93bad6f1c5c4",
+      "source": "channel:view"
+    },
+    {
+      "channel": "production",
+      "runtimeVersion": "24f221fef4b68720c4760263e732a9a835444eb3",
+      "source": "build:fingerprint"
+    }
+  ],
+  "insights": [
+    {
+      "channel": "preview",
+      "runtimeVersion": "5a1af47a8a9f5cbc73b422ca878e93bad6f1c5c4",
+      "source": "channel:view",
+      "ok": true,
+      "error": null,
+      "embeddedUniqueUsers": 0,
+      "otaUniqueUsers": 0,
+      "failedInstalls": 0
+    },
+    {
+      "channel": "development",
+      "runtimeVersion": "5a1af47a8a9f5cbc73b422ca878e93bad6f1c5c4",
+      "source": "channel:view",
+      "ok": true,
+      "error": null,
+      "embeddedUniqueUsers": 0,
+      "otaUniqueUsers": 0,
+      "failedInstalls": 0
+    },
+    {
+      "channel": "production",
+      "runtimeVersion": "24f221fef4b68720c4760263e732a9a835444eb3",
+      "source": "build:fingerprint",
+      "ok": true,
+      "error": null,
+      "embeddedUniqueUsers": 46,
+      "otaUniqueUsers": 0,
+      "failedInstalls": 0
+    }
+  ],
+  "observe": {
+    "metricsSummaryOk": true,
+    "eventsOk": false,
+    "eventsError": "Subscription to EAS is required for this feature. Subscribe: https://expo.dev/accounts/quartavia/settings/billing",
+    "parsed": {
+      "versionRows": [
+        {
+          "id": "ANDROID-1.2.1-0",
+          "platform": "ANDROID",
+          "version": "1.2.1",
+          "buildNumbers": [
+            "16"
+          ],
+          "updateIds": [],
+          "eventCount": 469,
+          "metrics": {
+            "expo.app_startup.cold_launch_time": {
+              "min": 0.067,
+              "median": 0.293,
+              "max": 1.251,
+              "average": 0.3726774193548388,
+              "p80": 0.529,
+              "p90": 0.618,
+              "p99": 1.251,
+              "eventCount": 31
+            },
+            "expo.app_startup.warm_launch_time": {
+              "min": 0.021,
+              "median": 0.109,
+              "max": 1.6219999999999999,
+              "average": 0.16440909090909092,
+              "p80": 0.196,
+              "p90": 0.385,
+              "p99": 1.622,
+              "eventCount": 88
+            },
+            "expo.app_startup.tti": {
+              "min": 0.257,
+              "median": 1.783,
+              "max": 11.775,
+              "average": 2.1823565217391305,
+              "p80": 2.978,
+              "p90": 3.959,
+              "p99": 11.295,
+              "eventCount": 115
+            },
+            "expo.app_startup.ttr": {
+              "min": 0.19,
+              "median": 0.665,
+              "max": 3.093,
+              "average": 0.766017094017094,
+              "p80": 1.016,
+              "p90": 1.321,
+              "p99": 2.814,
+              "eventCount": 117
+            },
+            "expo.app_startup.bundle_load_time": {
+              "min": 0.082,
+              "median": 0.272,
+              "max": 1.495,
+              "average": 0.32513559322033897,
+              "p80": 0.425,
+              "p90": 0.527,
+              "p99": 1.263,
+              "eventCount": 118
+            }
+          }
+        },
+        {
+          "id": "ANDROID-1.1.0-1",
+          "platform": "ANDROID",
+          "version": "1.1.0",
+          "buildNumbers": [
+            "13"
+          ],
+          "updateIds": [],
+          "eventCount": 24,
+          "metrics": {
+            "expo.app_startup.cold_launch_time": {
+              "min": 0.618,
+              "median": 0.618,
+              "max": 1.813,
+              "average": 1.2155,
+              "p80": 1.813,
+              "p90": 1.813,
+              "p99": 1.813,
+              "eventCount": 2
+            },
+            "expo.app_startup.warm_launch_time": {
+              "min": 0.137,
+              "median": 0.698,
+              "max": 1.548,
+              "average": 0.91325,
+              "p80": 1.548,
+              "p90": 1.548,
+              "p99": 1.548,
+              "eventCount": 4
+            },
+            "expo.app_startup.tti": {
+              "min": 2.01,
+              "median": 2.633,
+              "max": 5.506,
+              "average": 3.3594999999999993,
+              "p80": 4.538,
+              "p90": 5.506,
+              "p99": 5.506,
+              "eventCount": 6
+            },
+            "expo.app_startup.ttr": {
+              "min": 0.996,
+              "median": 2.092,
+              "max": 3.7800000000000002,
+              "average": 2.310333333333333,
+              "p80": 3.47,
+              "p90": 3.78,
+              "p99": 3.78,
+              "eventCount": 6
+            },
+            "expo.app_startup.bundle_load_time": {
+              "min": 0.428,
+              "median": 1.25,
+              "max": 1.822,
+              "average": 1.1773333333333333,
+              "p80": 1.7,
+              "p90": 1.822,
+              "p99": 1.822,
+              "eventCount": 6
+            }
+          }
+        },
+        {
+          "id": "ANDROID-1.0.2-2",
+          "platform": "ANDROID",
+          "version": "1.0.2",
+          "buildNumbers": [
+            "12"
+          ],
+          "updateIds": [],
+          "eventCount": 511,
+          "metrics": {
+            "expo.app_startup.cold_launch_time": {
+              "min": 0.07,
+              "median": 0.651,
+              "max": 2.6879999999999997,
+              "average": 0.6667454545454545,
+              "p80": 0.859,
+              "p90": 1.391,
+              "p99": 2.688,
+              "eventCount": 55
+            },
+            "expo.app_startup.warm_launch_time": {
+              "min": 0.024,
+              "median": 0.1,
+              "max": 0.513,
+              "average": 0.13162666666666664,
+              "p80": 0.205,
+              "p90": 0.256,
+              "p99": 0.513,
+              "eventCount": 75
+            },
+            "expo.app_startup.tti": {
+              "min": 0.259,
+              "median": 1.293,
+              "max": 21.468,
+              "average": 2.3547154471544713,
+              "p80": 2.889,
+              "p90": 3.782,
+              "p99": 17.591,
+              "eventCount": 123
+            },
+            "expo.app_startup.ttr": {
+              "min": 0.204,
+              "median": 0.67,
+              "max": 3.404,
+              "average": 0.8035736434108528,
+              "p80": 1.145,
+              "p90": 1.35,
+              "p99": 3.108,
+              "eventCount": 129
+            },
+            "expo.app_startup.bundle_load_time": {
+              "min": 0.087,
+              "median": 0.281,
+              "max": 1.642,
+              "average": 0.3321937984496123,
+              "p80": 0.463,
+              "p90": 0.563,
+              "p99": 1.535,
+              "eventCount": 129
+            }
+          }
+        },
+        {
+          "id": "ANDROID-1.0.0-3",
+          "platform": "ANDROID",
+          "version": "1.0.0",
+          "buildNumbers": [
+            "15",
+            "12",
+            "11"
+          ],
+          "updateIds": [],
+          "eventCount": 165,
+          "metrics": {
+            "expo.app_startup.cold_launch_time": {
+              "min": 1.803,
+              "median": 19.223,
+              "max": 38.897,
+              "average": 24.223799999999997,
+              "p80": 36.815,
+              "p90": 38.897,
+              "p99": 38.897,
+              "eventCount": 15
+            },
+            "expo.app_startup.warm_launch_time": {
+              "min": 0.662,
+              "median": 0.801,
+              "max": 127.014,
+              "average": 12.735083333333334,
+              "p80": 18.685,
+              "p90": 21.989,
+              "p99": 127.014,
+              "eventCount": 24
+            },
+            "expo.app_startup.tti": {
+              "min": 1.21,
+              "median": 1.526,
+              "max": 6.66,
+              "average": 2.04897619047619,
+              "p80": 2.835,
+              "p90": 3.022,
+              "p99": 6.66,
+              "eventCount": 42
+            },
+            "expo.app_startup.ttr": {
+              "min": 1.104,
+              "median": 1.365,
+              "max": 5.119,
+              "average": 1.4917380952380954,
+              "p80": 1.499,
+              "p90": 1.575,
+              "p99": 5.119,
+              "eventCount": 42
+            },
+            "expo.app_startup.bundle_load_time": {
+              "min": 0.643,
+              "median": 0.745,
+              "max": 2.814,
+              "average": 0.8332142857142857,
+              "p80": 0.813,
+              "p90": 0.828,
+              "p99": 2.814,
+              "eventCount": 42
+            }
+          }
+        },
+        {
+          "id": "IOS-1.2.1-4",
+          "platform": "IOS",
+          "version": "1.2.1",
+          "buildNumbers": [
+            "10"
+          ],
+          "updateIds": [],
+          "eventCount": 841,
+          "metrics": {
+            "expo.app_startup.cold_launch_time": {
+              "min": 0.13234754799486836,
+              "median": 0.42600787,
+              "max": 1.2028239798164577,
+              "average": 0.4713589869343824,
+              "p80": 0.60915893,
+              "p90": 0.8293916,
+              "p99": 1.202824,
+              "eventCount": 76
+            },
+            "expo.app_startup.warm_launch_time": {
+              "min": 0.057300651038531214,
+              "median": 0.1319346,
+              "max": 1.1345674137119204,
+              "average": 0.17107278854981653,
+              "p80": 0.21910568,
+              "p90": 0.25002405,
+              "p99": 0.7774809,
+              "eventCount": 136
+            },
+            "expo.app_startup.tti": {
+              "min": 0.14458091667620465,
+              "median": 1.183063,
+              "max": 11.80403337511234,
+              "average": 1.2814423060965388,
+              "p80": 1.6622286,
+              "p90": 1.9740508,
+              "p99": 3.6872396,
+              "eventCount": 205
+            },
+            "expo.app_startup.ttr": {
+              "min": 0.08840908331330866,
+              "median": 0.1848431,
+              "max": 1.1333234583362355,
+              "average": 0.2158944088035237,
+              "p80": 0.2747711,
+              "p90": 0.34729737,
+              "p99": 0.5911004,
+              "eventCount": 212
+            },
+            "expo.app_startup.bundle_load_time": {
+              "min": 0.016940666645765306,
+              "median": 0.028514061,
+              "max": 0.1600689582824707,
+              "average": 0.03530466371824864,
+              "p80": 0.04239396,
+              "p90": 0.052896332,
+              "p99": 0.13405788,
+              "eventCount": 212
+            }
+          }
+        },
+        {
+          "id": "IOS-1.0.2-5",
+          "platform": "IOS",
+          "version": "1.0.2",
+          "buildNumbers": [
+            "6"
+          ],
+          "updateIds": [],
+          "eventCount": 1111,
+          "metrics": {
+            "expo.app_startup.cold_launch_time": {
+              "min": 0.11322725465288386,
+              "median": 0.3927774,
+              "max": 1.3727498061489314,
+              "average": 0.42719630161838573,
+              "p80": 0.5741473,
+              "p90": 0.6599561,
+              "p99": 1.1220957,
+              "eventCount": 107
+            },
+            "expo.app_startup.warm_launch_time": {
+              "min": 0.0537609533930663,
+              "median": 0.13143714,
+              "max": 2.2309356299228966,
+              "average": 0.1807889403431799,
+              "p80": 0.19402426,
+              "p90": 0.28799903,
+              "p99": 1.1710054,
+              "eventCount": 172
+            },
+            "expo.app_startup.tti": {
+              "min": 0.11188024998409674,
+              "median": 0.9620337,
+              "max": 13.994304499821737,
+              "average": 1.1184658445860372,
+              "p80": 1.5194911,
+              "p90": 1.8278987,
+              "p99": 7.40507,
+              "eventCount": 274
+            },
+            "expo.app_startup.ttr": {
+              "min": 0.08121533333905973,
+              "median": 0.16979164,
+              "max": 0.7853975833568256,
+              "average": 0.19782611992172597,
+              "p80": 0.25912815,
+              "p90": 0.3194017,
+              "p99": 0.5071973,
+              "eventCount": 279
+            },
+            "expo.app_startup.bundle_load_time": {
+              "min": 0.014935916647315025,
+              "median": 0.028153209,
+              "max": 0.18040179163217546,
+              "average": 0.03348523566049568,
+              "p80": 0.04029125,
+              "p90": 0.05304046,
+              "p99": 0.14121808,
+              "eventCount": 279
+            }
+          }
+        }
+      ],
+      "platformSplit": [
+        {
+          "label": "ANDROID",
+          "count": 1169,
+          "percent": 37.5
+        },
+        {
+          "label": "IOS",
+          "count": 1952,
+          "percent": 62.5
+        }
+      ],
+      "totalEvents": 3121,
+      "configured": true
+    }
+  }
+}

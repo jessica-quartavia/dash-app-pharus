@@ -1,6 +1,5 @@
 import { DATE_RANGE_PRESETS } from "./period.mjs";
 import { OFFICIAL_JOURNEY_STAGES } from "../../../lib/app-pharus/clients.mjs";
-import { ADVISORS, CLIENT_STATUSES, JOURNEY_STAGES } from "../../data/mocks/catalogs.mjs";
 
 const yesNo = [
   { value: "all", label: "Todos" },
@@ -29,7 +28,7 @@ export function statusField() {
     key: "status",
     kind: "select",
     label: "Status",
-    options: [{ value: "all", label: "Todos" }, ...CLIENT_STATUSES.map((value) => ({ value, label: value }))],
+    options: [{ value: "all", label: "Todos" }],
   };
 }
 
@@ -51,7 +50,7 @@ export function journeyField() {
     key: "journeyStage",
     kind: "select",
     label: "Estágio da jornada",
-    options: [{ value: "all", label: "Todos" }, ...JOURNEY_STAGES.map((value) => ({ value, label: value }))],
+    options: [{ value: "all", label: "Todos" }],
   };
 }
 
@@ -69,28 +68,64 @@ export function officialJourneyField() {
   };
 }
 
-export function advisorField() {
+export function segmentField() {
+  return {
+    id: "filter-segment",
+    key: "segment",
+    kind: "select",
+    label: "Segmento",
+    options: [
+      { value: "all", label: "Todos" },
+      { value: "Tier 1", label: "Tier 1" },
+      { value: "Tier 2", label: "Tier 2" },
+      { value: "Tier 3", label: "Tier 3" },
+      { value: "Tier 4", label: "Tier 4" },
+      { value: "Dados insuficientes", label: "Dados insuficientes" },
+    ],
+  };
+}
+
+export function debtsField() {
+  return { id: "filter-debts", key: "debts", kind: "select", label: "DEBTS", options: yesNo };
+}
+
+export function advisorField(advisors = []) {
   return {
     id: "filter-advisor",
     key: "advisor",
     kind: "select",
     label: "Responsável / EP",
-    options: [{ value: "all", label: "Todos" }, ...ADVISORS.map((value) => ({ value, label: value }))],
+    options: [
+      { value: "all", label: "Todos" },
+      ...(advisors || []).map((item) => ({
+        value: item.id,
+        label: item.count != null ? `${item.name} (${item.count})` : item.name,
+      })),
+    ],
   };
 }
 
 export function PAGE_FILTERS() {
   return {
     visao_geral: [periodField()],
-    clientes: [searchField(), periodField(), openFinanceField(), mechanismsField(), wealthField(), officialJourneyField()],
+    clientes: [
+      searchField(),
+      periodField(),
+      openFinanceField(),
+      mechanismsField(),
+      wealthField(),
+      officialJourneyField(),
+      segmentField(),
+    ],
     patrimonio: [periodField(), advisorField(), wealthField()],
     open_finance: [periodField(), advisorField(), openFinanceField()],
-    mecanismos: [periodField(), advisorField()],
+    mecanismos: [searchField(), periodField(), advisorField()],
     reunioes: [periodField(), advisorField()],
     formularios: [periodField(), advisorField()],
-    jornada: [periodField(), journeyField(), advisorField()],
+    jornada: [],
     pagamentos: [periodField(), advisorField()],
     qualidade: [periodField()],
+    utilizacao_app: [periodField()],
   };
 }
 

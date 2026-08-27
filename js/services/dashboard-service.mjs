@@ -216,7 +216,11 @@ export async function getOpenFinancePage(filters) {
     health,
     rows: connections.map((item) => {
       const client = clients.find((c) => c.id === item.clientId);
-      return { ...item, clientName: client?.name || item.clientId };
+      return {
+        ...item,
+        id: `${item.clientId}-${item.institution}`,
+        clientName: client?.name || item.clientId,
+      };
     }),
   };
 }
@@ -285,8 +289,9 @@ export async function getFormsPage(filters) {
   const range = resolvePeriodRange(filters);
   const rows = FORM_SUBMISSIONS.filter(
     (item) => ids.has(item.clientId) && inPeriod(item.startedAt, range),
-  ).map((item) => ({
+  ).map((item, index) => ({
     ...item,
+    id: `form-${item.clientId}-${item.formId}-${index}`,
     formName: FORM_CATALOG.find((form) => form.id === item.formId)?.name || item.formId,
     clientName: clients.find((c) => c.id === item.clientId)?.name || item.clientId,
   }));
@@ -379,9 +384,13 @@ export async function getPaymentsPage(filters) {
       { label: "Sem pagamento identificado", value: clients.length - withPay.size, ...kpiNote(withPay.size, clients.length) },
     ],
     monthly: PAYMENTS_MONTHLY,
-    rows: payments.map((item) => ({
+    rows: payments.map((item, index) => ({
       ...item,
+      id: `pay-${item.clientId}-${item.date}-${index}`,
       clientName: clients.find((c) => c.id === item.clientId)?.name || item.clientId,
+      method: item.method || "Não informado",
+      status: item.status || "Registrado",
+      reference: item.reference || null,
     })),
   };
 }
@@ -401,6 +410,7 @@ export async function getQualityPage(filters) {
   ].map((item) => {
     const stats = coverage(clients, item.predicate);
     return {
+      id: item.domain,
       ...item,
       ...stats,
       updatedAt: null,

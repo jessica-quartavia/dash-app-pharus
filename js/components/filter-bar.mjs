@@ -1,5 +1,6 @@
 import { escapeHtml } from "../utils/escape.mjs";
 import { bindDateRangePicker, renderDateRangePicker } from "./date-range-picker.mjs";
+import { isStickyFiltersEnabled, setStickyFiltersEnabled, syncStickyFiltersClass } from "../lib/ui-preferences.mjs";
 
 function optionHtml(options, selected) {
   return (options || [])
@@ -14,7 +15,7 @@ function optionHtml(options, selected) {
 export function renderFilterBar({ fields, filters, note = "", periodInvalid = false } = {}) {
   const controls = (fields || []).map((field) => {
     if (field.kind === "search") {
-      return `<label class="filter-search">Busca<input id="${escapeHtml(field.id)}" type="search" placeholder="Nome, código ou ID" value="${escapeHtml(filters.search || "")}" /></label>`;
+      return `<label class="filter-search">Busca<input id="${escapeHtml(field.id)}" type="search" placeholder="Nome, e-mail ou ID" value="${escapeHtml(filters.search || "")}" /></label>`;
     }
     if (field.kind === "period") {
       return renderDateRangePicker({ field, filters, label: field.label || "Período" });
@@ -28,12 +29,19 @@ export function renderFilterBar({ fields, filters, note = "", periodInvalid = fa
     ? `<p class="filter-error">Selecione um intervalo válido. A data inicial não pode ser posterior à final.</p>`
     : "";
   const noteHtml = note ? `<p class="filter-semantics">${escapeHtml(note)}</p>` : "";
+  const stickyChecked = isStickyFiltersEnabled() ? " checked" : "";
   return `
-    <div class="filter-bar">
-      ${controls.join("")}
-      <div class="filter-actions">
-        <button class="btn btn-secondary" type="button" data-filter-clear>Limpar</button>
+    <div class="filter-shell">
+      <div class="filter-bar">
+        ${controls.join("")}
+        <div class="filter-actions">
+          <button class="btn btn-secondary" type="button" data-filter-clear>Limpar</button>
+        </div>
       </div>
+      <label class="filter-sticky-toggle">
+        <span>Fixar filtros</span>
+        <input type="checkbox" role="switch" aria-label="Fixar filtros ao rolar" data-sticky-filters${stickyChecked} />
+      </label>
     </div>
     ${error}
     ${noteHtml}
@@ -46,6 +54,8 @@ export function bindFilterBar({ host, fields, filters, onChange, onClear } = {})
   const signal = abort.signal;
   const unbindPickers = [];
   let current = { ...filters };
+
+  syncStickyFiltersClass();
 
   const readNonPeriod = (base) => {
     const next = { ...base };
@@ -97,10 +107,18 @@ export function bindFilterBar({ host, fields, filters, onChange, onClear } = {})
     if (event.target?.tagName === "SELECT") emitNonPeriod();
   };
   host.addEventListener("input", onInput, { signal });
-  host.addEventListener("change", (event) => {
-    if (event.target?.closest?.("[data-drp-root]")) return;
-    if (event.target?.tagName === "SELECT") emitNonPeriod();
-  }, { signal });
+  host.addEventListener(
+    "change",
+    (event) => {
+      if (event.target?.closest?.("[data-drp-root]")) return;
+      if (event.target?.matches?.("[data-sticky-filters]")) {
+        setStickyFiltersEnabled(event.target.checked);
+        return;
+      }
+      if (event.target?.tagName === "SELECT") emitNonPeriod();
+    },
+    { signal },
+  );
   host.querySelector("[data-filter-clear]")?.addEventListener(
     "click",
     () => {

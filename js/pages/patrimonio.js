@@ -1,6 +1,7 @@
 import { chartCard, chartGrid } from "../components/chart-card.mjs";
 import { donut, dualColumns, hBars, monthColumns } from "../components/charts.mjs";
-import { dataTable, tablePanel } from "../components/data-table.mjs";
+import { openWealthDrawer } from "../components/domain-drawers.mjs";
+import { mountInteractiveTable } from "../components/interactive-table.mjs";
 import { kpiCard, kpiRow } from "../components/kpi-card.mjs";
 import { methodologyBanner, sectionBlock } from "../components/page-kit.mjs";
 import { formatKpiValue } from "../lib/kpi-value.mjs";
@@ -9,11 +10,30 @@ import { getWealthPage } from "../services/dashboard-service.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
 import { formatCurrencyExact } from "../utils/format.mjs";
 
+const wealthTable = mountInteractiveTable("wealth-table-host", {
+  defaultState: { sortKey: "name", sortDir: "asc" },
+  searchPlaceholder: "Buscar cliente",
+  title: (rows) => `${rows.length} clientes no recorte`,
+  columns: [
+    { key: "name", label: "Cliente", sortable: true, value: (row) => escapeHtml(row.name) },
+    { key: "total", label: "Patrimônio total", sortable: true, numeric: true, sortValue: (row) => row.wealth?.total || 0, value: (row) => formatCurrencyExact(row.wealth?.total) },
+    { key: "investments", label: "Investimentos", sortable: true, numeric: true, sortValue: (row) => row.wealth?.investments || 0, value: (row) => formatCurrencyExact(row.wealth?.investments) },
+    { key: "realEstate", label: "Imóveis", sortable: true, numeric: true, sortValue: (row) => row.wealth?.realEstate || 0, value: (row) => formatCurrencyExact(row.wealth?.realEstate) },
+    { key: "otherAssets", label: "Outros ativos", sortable: true, numeric: true, sortValue: (row) => row.wealth?.otherAssets || 0, value: (row) => formatCurrencyExact(row.wealth?.otherAssets) },
+    { key: "financings", label: "Financiamentos", sortable: true, numeric: true, sortValue: (row) => row.wealth?.financings || 0, value: (row) => formatCurrencyExact(row.wealth?.financings) },
+    { key: "loans", label: "Empréstimos", sortable: true, numeric: true, sortValue: (row) => row.wealth?.loans || 0, value: (row) => formatCurrencyExact(row.wealth?.loans) },
+    { key: "net", label: "Patrimônio líquido", sortable: true, numeric: true, sortValue: (row) => row.wealth?.net || 0, value: (row) => formatCurrencyExact(row.wealth?.net) },
+  ],
+  onRowClick: (row) => openWealthDrawer(row),
+});
+
 export function bootPatrimonio() {
   mountPage({
     pageId: "patrimonio",
     load: getWealthPage,
-    render: (data) => `
+    render: (data) => {
+      queueMicrotask(() => wealthTable.mount({ rows: data.rows || [] }));
+      return `
       ${methodologyBanner("Patrimônio cadastrado no App. Clientes sem cadastro financeiro aparecem como não informado.")}
       ${sectionBlock({
         id: "sec-wealth-kpis",
@@ -50,24 +70,10 @@ export function bootPatrimonio() {
       ${sectionBlock({
         id: "sec-wealth-table",
         title: "4. Posição por cliente",
-        lead: "Clientes sem patrimônio continuam listados quando o recorte não exige cadastro financeiro.",
-        body: tablePanel({
-          title: "Posição cadastrada",
-          table: dataTable({
-            columns: [
-              { label: "Cliente", value: (row) => escapeHtml(row.name) },
-              { label: "Patrimônio total", numeric: true, value: (row) => formatCurrencyExact(row.wealth?.total) },
-              { label: "Investimentos", numeric: true, value: (row) => formatCurrencyExact(row.wealth?.investments) },
-              { label: "Imóveis", numeric: true, value: (row) => formatCurrencyExact(row.wealth?.realEstate) },
-              { label: "Outros ativos", numeric: true, value: (row) => formatCurrencyExact(row.wealth?.otherAssets) },
-              { label: "Financiamentos", numeric: true, value: (row) => formatCurrencyExact(row.wealth?.financings) },
-              { label: "Empréstimos", numeric: true, value: (row) => formatCurrencyExact(row.wealth?.loans) },
-              { label: "Patrimônio líquido", numeric: true, value: (row) => formatCurrencyExact(row.wealth?.net) },
-            ],
-            rows: data.rows,
-          }),
-        }),
+        lead: "Clique em um cliente para ver composição e passivos no drawer.",
+        body: `<div id="wealth-table-host"><p class="placeholder-note">Carregando tabela…</p></div>`,
       })}
-    `,
+    `;
+    },
   });
 }

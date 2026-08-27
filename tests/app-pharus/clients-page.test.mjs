@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { assembleOfficialClients, presentClientsPage } from "../../lib/app-pharus/clients-page.mjs";
-import { formatKpiValue } from "../../js/lib/kpi-value.mjs";
 import { PAGE_FILTERS } from "../../js/lib/filters/contracts.mjs";
 
 function member(id, createdAt, extra = {}) {
@@ -131,7 +130,7 @@ describe("página Clientes", () => {
     );
     const total = page.kpis.find((kpi) => kpi.key === "total");
     const news = page.kpis.find((kpi) => kpi.key === "new");
-    assert.equal(total.value, 2);
+    assert.equal(total.value, 1);
     assert.equal(news.status, "ok");
     assert.equal(news.value, 1);
     assert.equal(page.rows.length, 1);
@@ -140,19 +139,56 @@ describe("página Clientes", () => {
     assert.match(total.note, /No recorte: 1/);
   });
 
-  it("não inventa número para ativo, cadastro completo e atividade recente", () => {
-    const page = presentClientsPage({ clients: [], clientBase: { total: 0 } }, { period: "all" });
-    for (const key of ["active", "complete", "inactive"]) {
-      const kpi = page.kpis.find((item) => item.key === key);
-      assert.equal(kpi.status, "pending");
-      assert.equal(formatKpiValue(kpi), "Regra pendente");
-    }
+  it("mantém situação de uso pendente e calcula onboarding e inatividade operacional", () => {
+    const clients = assembleOfficialClients({
+      users: [
+        member("a", "2026-08-01T15:00:00.000-03:00"),
+        member("b", "2026-05-01T15:00:00.000-03:00"),
+      ],
+      profiles: [],
+      stages: [],
+      wealthIds: new Set(),
+      ofIds: new Set(),
+      mechanismIds: new Set(),
+      meetingIds: new Set(),
+      formIds: new Set(),
+      journeyIds: new Set(),
+      onboardingIds: new Set(["a"]),
+      personalDataIds: new Set(["a", "b"]),
+      lastOperationalActivity: new Map([["a", "2026-08-20"], ["b", "2026-01-01"]]),
+    });
+    const page = presentClientsPage(
+      {
+        clients,
+        clientBase: { total: 2 },
+        enrichment: {
+          user_progress: "ok",
+          form_submissions: "ok",
+          scheduled_meetings: "ok",
+          user_mechanisms: "ok",
+        },
+      },
+      { period: "all" },
+    );
+    const active = page.kpis.find((item) => item.key === "active");
+    const onboarding = page.kpis.find((item) => item.key === "onboarding");
+    const personal = page.kpis.find((item) => item.key === "personal_data");
+    const inactive = page.kpis.find((item) => item.key === "inactive");
+    assert.equal(active.status, "pending");
+    assert.equal(onboarding.status, "ok");
+    assert.equal(onboarding.value, 1);
+    assert.equal(personal.value, 2);
+    assert.equal(inactive.status, "ok");
+    assert.equal(inactive.value, 1);
+    assert.equal(clients[0].onboardingComplete, true);
+    assert.equal(clients[1].lastOperationalActivityAt, "2026-01-01");
   });
 
   it("filtros da página Clientes não usam status mock nem DE/ATÉ", () => {
     const fields = PAGE_FILTERS().clientes;
     const keys = fields.map((field) => field.key);
     assert.equal(keys.includes("period"), true);
+    assert.equal(keys.includes("segment"), true);
     assert.equal(keys.includes("status"), false);
     assert.equal(keys.includes("advisor"), false);
     assert.equal(fields.some((field) => field.kind === "period"), true);
