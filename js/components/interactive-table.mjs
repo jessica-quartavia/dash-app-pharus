@@ -64,7 +64,7 @@ export function renderInteractiveTablePanel({
   emptyText = "Ajuste a busca ou os filtros.",
   panelClass = "interactive-table-panel",
   recorteTotal,
-  hideSearch = false,
+  hideSearch = true,
 }) {
   const filtered = hideSearch ? rows || [] : filterTableRows(rows, state.search);
   const sorted = state.sortKey
@@ -136,7 +136,7 @@ export function bindInteractiveTable(host, options) {
     emptyText,
     panelClass,
     recorteTotal,
-    hideSearch = false,
+    hideSearch = true,
   } = options;
 
   const refresh = () => {

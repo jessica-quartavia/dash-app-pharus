@@ -28,6 +28,8 @@ const server = createServer(async (req, res) => {
     "/api/clients": "../api/clients.js",
     "/api/mechanisms": "../api/mechanisms.js",
     "/api/expo/usage": "../api/expo/usage.js",
+    "/api/firebase/usage": "../api/firebase/usage.js",
+    "/api/dashboard": "../api/dashboard.js",
   };
 
   if (apiHandlers[url.pathname]) {

@@ -16,6 +16,14 @@ export function formatNumber(value) {
   return numberFmt.format(Number(value));
 }
 
+export function formatDecimal(value, { digits = 1 } = {}) {
+  if (value == null || Number.isNaN(Number(value))) return "—";
+  return Number(value).toLocaleString("pt-BR", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
+
 export function formatPercent(value, { digits } = {}) {
   if (value == null || Number.isNaN(Number(value))) return "—";
   const n = Number(value);

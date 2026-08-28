@@ -4,6 +4,7 @@ import { loadingState } from "../components/loading-state.mjs";
 import { defaultFilters, resolvePeriodRange } from "./filters/apply.mjs";
 import { PAGE_FILTERS } from "./filters/contracts.mjs";
 import { syncStickyFiltersClass } from "./ui-preferences.mjs";
+import { bindExpandableChartLists } from "../components/expandable-chart-list.mjs";
 
 const pageState = new Map();
 
@@ -14,7 +15,9 @@ export function mountPage({
   filterNote = "Todos os indicadores desta página respeitam os filtros.",
   resolveFields = null,
 }) {
-  const baseFields = PAGE_FILTERS()[pageId] || [];
+  const baseFields = (PAGE_FILTERS()[pageId] || []).filter(
+    (field) => field.key !== "advisor" || (field.options || []).length > 1,
+  );
   pageState.set(pageId, {
     filters: defaultFilters(),
     unbindFilters: null,
@@ -124,6 +127,7 @@ async function refresh(pageId, { load, render, filterNote, force = false }) {
 
   try {
     contentEl.innerHTML = render(data, state.filters);
+    bindExpandableChartLists(contentEl);
     contentEl.querySelector("[data-page-retry]")?.addEventListener("click", () => {
       void refresh(pageId, { load, render, filterNote, force: true });
     });

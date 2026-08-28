@@ -68,16 +68,9 @@ export function openWealthDrawer(row) {
   const wealth = row.wealth;
   const body = wealth
     ? dl([
-        { label: "Patrimônio total", value: formatCurrencyExact(wealth.total) },
-        { label: "Investimentos", value: formatCurrencyExact(wealth.investments) },
-        { label: "Imóveis", value: formatCurrencyExact(wealth.realEstate) },
-        { label: "Financeiro", value: formatCurrencyExact(wealth.financial) },
-        { label: "Outros ativos", value: formatCurrencyExact(wealth.otherAssets) },
-        { label: "Previdência", value: formatCurrencyExact(wealth.pension) },
-        { label: "Consórcios", value: formatCurrencyExact(wealth.consortium) },
-        { label: "Financiamentos", value: formatCurrencyExact(wealth.financings) },
-        { label: "Empréstimos", value: formatCurrencyExact(wealth.loans) },
-        { label: "Passivos (total)", value: formatCurrencyExact(wealth.liabilities) },
+        { label: "Ativos", value: formatCurrencyExact(wealth.assets) },
+        ...Object.entries(wealth.classes || {}).map(([label, value]) => ({ label, value: formatCurrencyExact(value) })),
+        { label: "Passivos", value: formatCurrencyExact(wealth.liabilities) },
         { label: "Patrimônio líquido", value: formatCurrencyExact(wealth.net) },
       ])
     : `<p class="placeholder-note">Cliente sem patrimônio cadastrado no recorte.</p>`;
@@ -99,7 +92,6 @@ export function openOpenFinanceDrawer(row) {
       body: dl([
         { label: "Instituição", value: escapeHtml(row.institution) },
         { label: "Status", value: statusBadge(row.status) },
-        { label: "Saúde", value: statusBadge(row.health) },
         { label: "Resultado", value: escapeHtml(row.result) },
         { label: "Contas", value: formatNumber(row.accounts) },
         { label: "Tipos de conta", value: escapeHtml((row.accountTypes || []).join(", ") || "Não informado") },
@@ -121,6 +113,9 @@ export function openMeetingDrawer(row) {
         { label: "Data", value: formatDate(row.date) },
         { label: "Status", value: statusBadge(row.status) },
         { label: "Avaliação", value: row.score == null ? "Não informado" : `${row.score} de 5` },
+        { label: "Destaques", value: escapeHtml(row.highlights?.join(", ") || "Não informado") },
+        { label: "Pontos de atenção", value: escapeHtml(row.attentionPoints?.join(", ") || "Não informado") },
+        { label: "Comentário", value: escapeHtml(row.evaluationNote || "Não informado") },
         { label: "Outputs", value: formatNumber(row.outputs) },
       ]),
     }),
@@ -167,10 +162,9 @@ export function openPaymentDrawer(row) {
       title: escapeHtml(row.clientName || row.clientId),
       body: dl([
         { label: "Data", value: formatDate(row.date) },
-        { label: "Valor", value: formatCurrencyExact(row.amount) },
-        { label: "Forma", value: escapeHtml(row.method || "Não informado") },
         { label: "Status", value: statusBadge(row.status) },
-        { label: "Referência", value: escapeHtml(row.reference || "Não informado") },
+        { label: "Início do ciclo", value: formatDate(row.cycleStart) },
+        { label: "Fim do ciclo", value: formatDate(row.cycleEnd) },
       ]),
     }),
   );

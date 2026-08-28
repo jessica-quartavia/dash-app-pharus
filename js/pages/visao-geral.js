@@ -1,4 +1,6 @@
 import { coverageCard } from "../components/coverage-card.mjs";
+import { chartCard, chartGrid } from "../components/chart-card.mjs";
+import { donut, funnelRows, hBars } from "../components/charts.mjs";
 import { kpiCard, kpiRow } from "../components/kpi-card.mjs";
 import { methodologyBanner, sectionBlock } from "../components/page-kit.mjs";
 import { formatKpiValue } from "../lib/kpi-value.mjs";
@@ -39,18 +41,16 @@ function coverageBody(items) {
 export function bootVisaoGeral() {
   mountPage({
     pageId: "visao_geral",
-    filterNote: "O filtro de período ainda não altera esta página: não há recorte mensal único de utilização do App.",
+    filterNote: "A Visão Geral apresenta a fotografia executiva atual. Séries históricas sem regra temporal comprovada não são exibidas.",
     load: getOverview,
     render: (data) => {
-      const monthly = `<div class="gd-status" role="status"><strong>Indicador em definição</strong><span>${escapeHtml(data.monthly?.message || "Ainda não há série mensal de utilização.")}</span></div>`;
-
       return `
         ${methodologyBanner(data.methodology || "Indicadores da base oficial do App Pharus. Sem regra definida, o indicador fica pendente.")}
         ${sectionBlock({
           id: "sec-kpis",
-          title: "1. Resumo de utilização",
-          lead: "Somente indicadores com regra definida. Os demais aparecem como regra pendente.",
-          body: `${renderKpis(data.kpis, 0, 4, "kpi-row-primary")}${renderKpis(data.kpis, 4, 8, "kpi-row-secondary")}`,
+          title: "1. Resumo executivo",
+          lead: "População oficial, avanço da jornada e utilização dos principais recursos.",
+          body: `${renderKpis(data.kpis, 0, 6, "kpi-row-primary")}${renderKpis(data.kpis, 6, 8, "kpi-row-secondary")}`,
         })}
         ${sectionBlock({
           id: "sec-coverage",
@@ -59,16 +59,18 @@ export function bootVisaoGeral() {
           body: coverageBody(data.coverage),
         })}
         ${sectionBlock({
-          id: "sec-monthly",
-          title: "3. Evolução mensal",
-          lead: "A série de utilização do App ainda está em definição.",
-          body: monthly,
+          id: "sec-journey",
+          title: "3. Avanço da jornada",
+          body: chartGrid([
+            chartCard({ title: "Funil resumido", body: funnelRows(data.journey?.funnel || []), featured: true }),
+            chartCard({ title: "Distribuição atual", body: donut(data.journey?.distribution || []) }),
+          ]),
         })}
         ${sectionBlock({
-          id: "sec-insights",
-          title: "4. Insights",
-          lead: "O espaço permanece preparado para análises futuras.",
-          body: `<p class="placeholder-note">Nenhum insight gerado nesta etapa.</p>`,
+          id: "sec-alerts",
+          title: "4. Principais alertas",
+          lead: "Pontos que merecem acompanhamento operacional.",
+          body: hBars((data.alerts || []).map((item) => ({ label: item.label, count: item.value, percent: data.denominator ? (item.value / data.denominator) * 100 : 0 })), { preserveOrder: true }),
         })}
       `;
     },

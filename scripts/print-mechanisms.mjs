@@ -18,7 +18,7 @@ console.log(JSON.stringify({
   withMechanisms: byKey.with.value,
   withoutMechanisms: byKey.without.value,
   coverage: formatPercent(byKey.coverage.value),
-  median: byKey.median.value,
+  average: byKey.average.value,
   lastImplemented: byKey.last.value,
   qtyZero: page.qtyDist.find((item) => item.label === "0")?.count,
 }, null, 2));

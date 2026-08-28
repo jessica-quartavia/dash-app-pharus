@@ -61,7 +61,6 @@
     <div id="portal-root" hidden>
       <div class="nav-backdrop" id="nav-backdrop"></div>
       <aside class="sidebar" id="sidebar">
-        <div class="sidebar-theme" id="sidebar-theme"></div>
         <button
           type="button"
           class="sidebar-collapse-toggle"
@@ -87,22 +86,6 @@
           </div>
         </div>
         <nav id="sidebar-nav" class="sidebar-nav" aria-label="Navegação principal"></nav>
-        <div class="sidebar-footer" id="sidebar-footer">
-          <div class="sidebar-auth" aria-label="Conta do usuário">
-            <span class="sidebar-auth-avatar" aria-hidden="true">
-              <img id="auth-user-avatar" alt="" width="32" height="32" hidden />
-              <span id="auth-user-initial">U</span>
-            </span>
-            <div class="sidebar-auth-meta">
-              <strong id="auth-user-name" hidden></strong>
-              <span id="auth-user-email"></span>
-            </div>
-            <button class="btn btn-ghost sidebar-sign-out" id="auth-sign-out" type="button" title="Sair">
-              <span class="sidebar-sign-out-icon" aria-hidden="true">↪</span>
-              <span class="sidebar-sign-out-label">Sair</span>
-            </button>
-          </div>
-        </div>
       </aside>
 
       <div class="portal-main">
@@ -117,6 +100,22 @@
           >
             Menu
           </button>
+          <div class="topbar-actions">
+            <div class="topbar-theme" id="topbar-theme"></div>
+            <div class="topbar-user" aria-label="Conta do usuário">
+              <span class="sidebar-auth-avatar" aria-hidden="true">
+                <img id="auth-user-avatar" alt="" width="32" height="32" hidden />
+                <span id="auth-user-initial">U</span>
+              </span>
+              <div class="sidebar-auth-meta">
+                <strong id="auth-user-name" hidden></strong>
+                <span id="auth-user-email"></span>
+              </div>
+            </div>
+            <button class="btn btn-ghost topbar-sign-out" id="auth-sign-out" type="button" title="Sair">
+              <span aria-hidden="true">↪</span><span>Sair</span>
+            </button>
+          </div>
         </header>
 
         <p id="demo-banner" class="demo-banner" hidden>

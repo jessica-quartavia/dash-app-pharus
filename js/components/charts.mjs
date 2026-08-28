@@ -1,6 +1,7 @@
 import { escapeHtml } from "../utils/escape.mjs";
 import { sortDistributionUnknownLast } from "../utils/sort.mjs";
 import { formatCurrencyCompact, formatCurrencyExact, formatNumber, formatPercent } from "../utils/format.mjs";
+import { EXPANDABLE_CHART_LIMIT, renderExpandableChartList } from "./expandable-chart-list.mjs";
 
 const STATUS_COLORS = {
   Ativo: "#0a0a0a",
@@ -40,13 +41,14 @@ function colorForLabel(label, index = 0) {
 
 export function hBars(items, options = {}) {
   const list = options.preserveOrder ? [...(items || [])] : sortDistributionUnknownLast(items || []);
-  const visible = options.limit ? list.slice(0, options.limit) : list;
-  if (!visible.length) return `<p class="placeholder-note">Sem dados para o recorte selecionado.</p>`;
-  const max = Math.max(...visible.map((item) => item.count), 1);
+  const rendered = options.limit ? list.slice(0, options.limit) : list;
+  if (!rendered.length) return `<p class="placeholder-note">Sem dados para o recorte selecionado.</p>`;
+  const max = Math.max(...rendered.map((item) => item.count), 1);
   const layoutClass = options.compact ? " hbar-layout--compact" : " hbar-layout--wide";
-  return `<div class="hbar-list${layoutClass}">${visible
+  const valueFormatter = options.valueFormatter || formatNumber;
+  const rows = rendered
     .map((item) => {
-      const metric = `${formatNumber(item.count)} · ${formatPercent(item.percent)}`;
+      const metric = `${valueFormatter(item.count)} · ${formatPercent(item.percent)}`;
       const width = (item.count / max) * 100;
       return `<div class="hbar" title="${escapeHtml(item.label)}: ${escapeHtml(metric)}">
         <div class="hbar-label hbar-label--wrap">${escapeHtml(item.label)}</div>
@@ -54,7 +56,11 @@ export function hBars(items, options = {}) {
         <div class="hbar-val">${escapeHtml(metric)}</div>
       </div>`;
     })
-    .join("")}</div>`;
+  if (options.expandable === false) return `<div class="hbar-list${layoutClass}">${rows.join("")}</div>`;
+  return renderExpandableChartList(rows, {
+    contentClass: `hbar-list${layoutClass}`,
+    limit: options.initialLimit || EXPANDABLE_CHART_LIMIT,
+  });
 }
 
 export function donut(items) {

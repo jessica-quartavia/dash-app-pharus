@@ -7,7 +7,7 @@ import { methodologyBanner, sectionBlock } from "../components/page-kit.mjs";
 import { statusBadge } from "../components/status-badge.mjs";
 import { formatKpiValue } from "../lib/kpi-value.mjs";
 import { mountPage } from "../lib/page-runtime.mjs";
-import { getFormsPage } from "../services/dashboard-service.mjs";
+import { getFormsPage } from "../services/app-pharus/domain-pages.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
 import { formatDate, formatPercent } from "../utils/format.mjs";
 
@@ -48,7 +48,6 @@ export function bootFormularios() {
           chartCard({ title: "Preenchimento por formulário", body: hBars(data.byForm) }),
           chartCard({ title: "Evolução de respostas", body: monthColumns(data.monthly) }),
           chartCard({ title: "Taxa de conclusão", body: donut(data.completion) }),
-          chartCard({ title: "Principais perfis", subtitle: "Quando a resposta foi concluída", body: hBars(data.profiles) }),
         ]),
       })}
       ${sectionBlock({

@@ -22,6 +22,7 @@ async function startPortal() {
     () => import("./pages/pagamentos.js").then((m) => m.bootPagamentos()),
     () => import("./pages/utilizacao-app.js").then((m) => m.bootUtilizacaoApp()),
     () => import("./pages/qualidade-dados.js").then((m) => m.bootQualidade()),
+    () => import("./pages/documentacao.js").then((m) => m.bootDocumentacao()),
   ];
 
   await Promise.all(

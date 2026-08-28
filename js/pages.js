@@ -5,6 +5,7 @@ export const PAGE_GROUPS = [
   { id: "carteira", label: "Carteira" },
   { id: "app", label: "App Pharus" },
   { id: "operacao", label: "Operação" },
+  { id: "ajuda", label: "Ajuda" },
 ];
 
 export const PAGES = [
@@ -117,6 +118,7 @@ export const PAGES = [
     eyebrow: "App Pharus",
     description: "Telemetria e uso efetivo do aplicativo via Expo/EAS, separada da base de clientes no Supabase.",
     implemented: true,
+    badge: { label: "🔧 Em construção", tone: "warning" },
   },
   {
     id: "qualidade",
@@ -127,6 +129,17 @@ export const PAGES = [
     title: "Qualidade dos Dados",
     eyebrow: "Sistema",
     description: "Cobertura por domínio: o que existe, o que falta e o status da qualidade.",
+    implemented: true,
+  },
+  {
+    id: "documentacao",
+    hash: "documentacao",
+    aliases: ["docs", "metricas"],
+    group: "ajuda",
+    navLabel: "Documentação",
+    title: "Documentação",
+    eyebrow: "Ajuda",
+    description: "Entenda, em linguagem simples, o que cada métrica significa e como ela é calculada.",
     implemented: true,
   },
 ];

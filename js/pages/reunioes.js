@@ -7,9 +7,9 @@ import { methodologyBanner, sectionBlock } from "../components/page-kit.mjs";
 import { statusBadge } from "../components/status-badge.mjs";
 import { formatKpiValue } from "../lib/kpi-value.mjs";
 import { mountPage } from "../lib/page-runtime.mjs";
-import { getMeetingsPage } from "../services/dashboard-service.mjs";
+import { getMeetingsPage } from "../services/app-pharus/domain-pages.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
-import { formatDate, formatNumber } from "../utils/format.mjs";
+import { formatDate, formatDecimal, formatNumber } from "../utils/format.mjs";
 
 const meetingsTable = mountInteractiveTable("meetings-table-host", {
   defaultState: { sortKey: "date", sortDir: "desc" },
@@ -22,6 +22,8 @@ const meetingsTable = mountInteractiveTable("meetings-table-host", {
     { key: "status", label: "Status", sortable: true, value: (row) => statusBadge(row.status) },
     { key: "advisor", label: "Responsável", sortable: true, value: (row) => escapeHtml(row.advisor) },
     { key: "score", label: "Avaliação", sortable: true, numeric: true, sortValue: (row) => row.score ?? -1, value: (row) => (row.score == null ? "Não informado" : `${row.score} de 5`) },
+    { key: "highlights", label: "Destaques", value: (row) => escapeHtml(row.highlights?.join(", ") || "Não informado") },
+    { key: "attentionPoints", label: "Pontos de atenção", value: (row) => escapeHtml(row.attentionPoints?.join(", ") || "Não informado") },
     { key: "outputs", label: "Outputs", sortable: true, numeric: true, value: (row) => formatNumber(row.outputs) },
   ],
   onRowClick: (row) => openMeetingDrawer(row),
@@ -34,7 +36,7 @@ export function bootReunioes() {
     render: (data) => {
       queueMicrotask(() => meetingsTable.mount({ rows: data.rows || [] }));
       return `
-      ${methodologyBanner("Comparecimento = reuniões realizadas sobre o total agendado no recorte.")}
+      ${methodologyBanner("Comparecimento = status completed sobre reuniões agendadas. Notas e destaques aparecem somente quando existe avaliação registrada.")}
       ${sectionBlock({
         id: "sec-meet-kpis",
         title: "1. Resumo das reuniões",
@@ -56,8 +58,8 @@ export function bootReunioes() {
           }),
           chartCard({ title: "Reuniões por tipo", body: donut(data.byType) }),
           chartCard({ title: "Status das reuniões", body: hBars(data.byStatus) }),
-          chartCard({ title: "Intervalo entre reuniões", body: hBars(data.intervals) }),
           chartCard({ title: "Avaliações", body: hBars(data.scores) }),
+          chartCard({ title: "Avaliação por tipo", subtitle: "Nota média e quantidade real de avaliações", body: hBars(data.evaluationsByType.map((item) => ({ label: `${item.label} · ${item.evaluations} avaliações`, count: item.score, percent: (item.score / 5) * 100 })), { preserveOrder: true, valueFormatter: (value) => formatDecimal(value, { digits: 1 }) }) }),
         ]),
       })}
       ${sectionBlock({

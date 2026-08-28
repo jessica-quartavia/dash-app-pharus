@@ -13,8 +13,8 @@ export function applyTheme(theme = getTheme()) {
   document.documentElement.setAttribute("data-theme", next);
   const button = document.querySelector("[data-theme-toggle]");
   button?.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
-  button?.setAttribute("aria-label", next === "dark" ? "Ativar tema Light" : "Ativar tema Dark");
-  button?.setAttribute("title", next === "dark" ? "Ativar tema Light" : "Ativar tema Dark");
+  button?.setAttribute("aria-label", next === "dark" ? "Mudar para modo claro" : "Mudar para modo escuro");
+  button?.setAttribute("title", next === "dark" ? "Mudar para modo claro" : "Mudar para modo escuro");
   const label = button?.querySelector("[data-theme-label]");
   if (label) label.textContent = next === "dark" ? "Dark" : "Light";
   return next;

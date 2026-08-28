@@ -1,12 +1,12 @@
 import { chartCard, chartGrid } from "../components/chart-card.mjs";
-import { funnelRows, hBars } from "../components/charts.mjs";
+import { donut, funnelRows, hBars } from "../components/charts.mjs";
 import { openJourneyDrawer } from "../components/domain-drawers.mjs";
 import { mountInteractiveTable } from "../components/interactive-table.mjs";
 import { kpiCard, kpiRow } from "../components/kpi-card.mjs";
 import { methodologyBanner, sectionBlock } from "../components/page-kit.mjs";
 import { formatKpiValue } from "../lib/kpi-value.mjs";
 import { mountPage } from "../lib/page-runtime.mjs";
-import { getJourneyPage } from "../services/dashboard-service.mjs";
+import { getJourneyPage } from "../services/app-pharus/domain-pages.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
 import { formatDate, formatNumber, formatPercent } from "../utils/format.mjs";
 
@@ -32,7 +32,7 @@ export function bootJornada() {
     render: (data) => {
       queueMicrotask(() => journeyTable.mount({ rows: data.rows || [] }));
       return `
-      ${methodologyBanner("Estágio atual do App. Abandono = maior perda absoluta entre etapas consecutivas.")}
+      ${methodologyBanner("Jornada completa = cliente que chegou à Central de Inteligência. Tempo total usa mediana e somente cronologias válidas; intervalos negativos são descartados.")}
       ${sectionBlock({
         id: "sec-journey-kpis",
         title: "1. Resumo da jornada",
@@ -43,8 +43,10 @@ export function bootJornada() {
         id: "sec-journey-funnel",
         title: "2. Funil da jornada",
         body: chartGrid([
-          chartCard({ title: "Clientes por etapa", body: funnelRows(data.funnel), featured: true }),
-          chartCard({ title: "Taxa de avanço entre etapas", subtitle: "Quem chegou na etapa seguinte", body: hBars(data.advance) }),
+          chartCard({ title: "Funil da jornada", subtitle: "Percentual sobre a população inicial", body: funnelRows(data.funnel), featured: true }),
+          chartCard({ title: "Distribuição atual", subtitle: "Em que estágio estão os clientes agora", body: donut(data.byStage) }),
+          chartCard({ title: "Tempo entre etapas", subtitle: "Mediana em dias · pares cronológicos válidos", body: hBars(data.transitions, { preserveOrder: true }) }),
+          chartCard({ title: "Saúde operacional", subtitle: "Faixas cumulativas desde o último avanço", body: hBars(data.health, { preserveOrder: true }) }),
         ]),
       })}
       ${sectionBlock({

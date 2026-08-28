@@ -28,8 +28,6 @@ async function main() {
   const tiers = chartToMap(chart);
 
   const officialTotal = clientsDataset.populationTotal ?? clientsDataset.clientBase?.total ?? page.rows.length;
-  const withEngines = page.rows.filter((client) => client.tier && client.tier !== "Dados insuficientes" || client.tierIncome != null || client.tierReserve != null || client.tierContribution != null).length;
-  const withoutEngines = page.rows.filter((client) => client.tier === "Dados insuficientes" && client.tierReasons?.some((r) => r.includes("Sem renda"))).length;
   // More accurate: no engine row = tierReasons without income and dados insuficientes from missing engine
   const noEngine = page.rows.filter((c) => c.tierReasons?.some((r) => r.includes("Sem renda")) && c.tierIncome == null && c.tierReserve == null && c.tierContribution == null).length;
 

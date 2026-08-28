@@ -40,11 +40,21 @@ function updatePageChrome(page) {
   const title = document.getElementById("page-title");
   const description = document.getElementById("page-description");
   const view = document.getElementById("page-view");
+  const actions = document.getElementById("page-actions");
 
   if (eyebrow) eyebrow.textContent = page.eyebrow;
   if (title) title.textContent = page.title;
   if (description) description.textContent = page.description;
   if (view) view.dataset.page = page.id;
+  if (actions) {
+    actions.replaceChildren();
+    if (page.badge?.label) {
+      const badge = document.createElement("span");
+      badge.className = `page-status-badge page-status-badge--${page.badge.tone || "neutral"}`;
+      badge.textContent = page.badge.label;
+      actions.appendChild(badge);
+    }
+  }
 
   document.querySelectorAll("[data-page-nav]").forEach((button) => {
     const active = button.dataset.pageNav === page.id;
@@ -153,7 +163,7 @@ function closeMobileNav() {
 export function bootNavigation() {
   renderSidebar();
   initSidebarCollapse();
-  mountThemeToggle(document.getElementById("sidebar-theme"));
+  mountThemeToggle(document.getElementById("topbar-theme"));
 
   if (!navBound) {
     navBound = true;
