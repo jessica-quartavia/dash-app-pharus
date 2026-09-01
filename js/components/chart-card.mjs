@@ -13,6 +13,6 @@ export function chartCard({ title, subtitle = "", body, footer = "", featured = 
 }
 
 export function chartGrid(cards, columns = 2) {
-  const cls = columns === 3 ? "chart-grid chart-grid-three" : "chart-grid";
+  const cls = columns === 1 ? "chart-grid chart-grid-full" : columns === 3 ? "chart-grid chart-grid-three" : "chart-grid";
   return `<div class="${cls}">${cards.join("")}</div>`;
 }

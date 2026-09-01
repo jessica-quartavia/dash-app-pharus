@@ -115,6 +115,95 @@ function dayTooltipLabel(dateStr) {
   return `${dd}/${mm}/${d.getUTCFullYear()}`;
 }
 
+function dayLongLabel(dateStr) {
+  const raw = String(dateStr || "").slice(0, 10);
+  const d = new Date(`${raw}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return raw;
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(d);
+}
+
+export function usageLineChart(series, { valueKey = "count", maxItems = 90 } = {}) {
+  const source = Array.isArray(series) ? series : [];
+  const list = (maxItems && source.length > maxItems ? source.slice(-maxItems) : source)
+    .map((item) => ({ ...item, value: Number(item[valueKey]) }))
+    .filter((item) => Number.isFinite(item.value));
+  if (!list.length) return `<p class="placeholder-note">Sem dados no período selecionado.</p>`;
+
+  const width = 1000;
+  const height = 300;
+  const margin = { top: 20, right: 22, bottom: 46, left: 50 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const maxValue = Math.max(...list.map((item) => item.value), 1);
+  const xFor = (index) => margin.left + (list.length === 1 ? plotWidth / 2 : (index / (list.length - 1)) * plotWidth);
+  const yFor = (value) => margin.top + plotHeight - (value / maxValue) * plotHeight;
+  const points = list.map((item, index) => ({ ...item, x: xFor(index), y: yFor(item.value) }));
+  const path = points.map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
+  const tickValues = maxValue <= 3
+    ? Array.from({ length: maxValue + 1 }, (_, index) => index)
+    : [...new Set([0, 1 / 3, 2 / 3, 1].map((ratio) => Math.round(maxValue * ratio)))];
+  const grid = tickValues.map((value) => {
+    const y = margin.top + plotHeight - (value / maxValue) * plotHeight;
+    return `<g class="usage-line-grid"><line x1="${margin.left}" x2="${width - margin.right}" y1="${y}" y2="${y}"></line><text x="${margin.left - 10}" y="${y + 4}" text-anchor="end">${escapeHtml(formatNumber(value))}</text></g>`;
+  }).join("");
+  const labelStep = Math.max(1, Math.ceil((list.length - 1) / 6));
+  const xLabels = points.map((point, index) => {
+    if (index !== 0 && index !== points.length - 1 && index % labelStep !== 0) return "";
+    return `<text class="usage-line-x-label" x="${point.x}" y="${height - 13}" text-anchor="middle">${escapeHtml(dayShortLabel(point.date || point.label).replace(/^0/, ""))}</text>`;
+  }).join("");
+  const pointMarkup = points.map((point, index) => {
+    const date = dayLongLabel(point.date || point.label);
+    const countLabel = `${formatNumber(point.value)} ${point.value === 1 ? "usuário único" : "usuários únicos"}`;
+    const tooltip = `${date}\n${countLabel}`;
+    const latest = index === points.length - 1;
+    return `<g class="usage-line-point${latest ? " is-latest" : ""}" tabindex="0" role="img" aria-label="${escapeHtml(`${date}, ${countLabel}`)}" data-line-point data-x="${point.x}" data-y="${point.y}" data-tooltip="${escapeHtml(tooltip)}">
+      ${latest ? `<circle class="usage-line-point-ring" cx="${point.x}" cy="${point.y}" r="8"></circle>` : ""}
+      <circle class="usage-line-point-dot" cx="${point.x}" cy="${point.y}" r="${latest ? 4.5 : 3.5}"></circle>
+    </g>`;
+  }).join("");
+
+  return `<div class="usage-line-chart" data-usage-line-chart>
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Evolução diária de usuários únicos">
+      ${grid}
+      <path class="usage-line-path" d="${path}"></path>
+      ${pointMarkup}
+      ${xLabels}
+    </svg>
+    <div class="usage-line-tooltip" role="status" aria-live="polite" hidden></div>
+  </div>`;
+}
+
+export function bindUsageLineChartTooltips(root = document) {
+  root.querySelectorAll("[data-usage-line-chart]").forEach((chart) => {
+    const tooltip = chart.querySelector(".usage-line-tooltip");
+    if (!tooltip || chart.dataset.tooltipBound === "true") return;
+    chart.dataset.tooltipBound = "true";
+    const show = (point) => {
+      tooltip.textContent = point.dataset.tooltip || "";
+      tooltip.hidden = false;
+      const chartRect = chart.getBoundingClientRect();
+      const pointRect = point.getBoundingClientRect();
+      const rawLeft = pointRect.left + pointRect.width / 2 - chartRect.left;
+      const half = tooltip.offsetWidth / 2;
+      tooltip.style.left = `${Math.min(Math.max(rawLeft, half + 8), chartRect.width - half - 8)}px`;
+      tooltip.style.top = `${pointRect.top + pointRect.height / 2 - chartRect.top}px`;
+    };
+    const hide = () => { tooltip.hidden = true; };
+    chart.querySelectorAll("[data-line-point]").forEach((point) => {
+      point.addEventListener("mouseenter", () => show(point));
+      point.addEventListener("mouseleave", hide);
+      point.addEventListener("focus", () => show(point));
+      point.addEventListener("blur", hide);
+    });
+    chart.addEventListener("scroll", hide, { passive: true });
+  });
+}
+
 export function dailyColumns(series, { valueKey = "count", titleSuffix = "usuários únicos", maxItems = 90 } = {}) {
   const source = Array.isArray(series) ? series : [];
   const list = maxItems && source.length > maxItems ? source.slice(-maxItems) : source;

@@ -115,13 +115,15 @@ export const METRICS_DOCUMENTATION = [
 
   page("utilizacao-app", "Utilização do App", "Área em construção para entender como o aplicativo está sendo utilizado.", [
     metric("fonte-uso", "Fonte atual", "Indica de onde vêm as informações desta página.", "Hoje usamos dados técnicos do Expo/EAS e informações agregadas da base do App Pharus. Firebase Analytics ainda não faz parte dos cálculos atuais."),
-    metric("usuarios-unicos", "Usuários únicos", "Quantidade de usuários únicos observados pelo Expo, quando essa informação estiver disponível.", "Usa somente o número retornado pelo Expo/EAS. Não transforma clientes da base Pharus em usuários Expo."),
+    metric("usuarios-unicos", "Usuários únicos", "Usuários únicos de updates por channel/runtime quando retornados pelo Expo.", "Não soma grupos de update para inventar um total deduplicado do aplicativo. Usuários únicos 7d e 30d ficam indisponíveis enquanto esse total não existir."),
     metric("serie-utilizacao", "Evolução de utilização", "Mostra a utilização técnica ao longo dos dias.", "Usa a série retornada pelo Expo/EAS e começa na primeira data que possui informação real."),
     metric("plataformas", "Android x iOS", "Distribuição dos eventos técnicos entre Android e iOS.", "Agrupa eventos de desempenho por plataforma. Esses eventos não são uma contagem de clientes."),
     metric("versoes", "Versões", "Versões do aplicativo que aparecem nos eventos técnicos.", "Agrupa os eventos pela versão e plataforma informadas pelo Expo/EAS."),
     metric("builds", "Builds", "Pacotes do aplicativo criados para instalação ou publicação.", "Lista os builds retornados pelo EAS, com plataforma, versão, status e data."),
     metric("channels", "Channels", "Canais usados para distribuir atualizações do aplicativo.", "Mostra os canais encontrados no EAS. Um canal ajuda a direcionar uma atualização para um grupo do aplicativo."),
     metric("updates", "Updates e runtimes", "Atualizações publicadas e versões de execução usadas pelo aplicativo.", "Lista as atualizações retornadas pelo EAS e informa canal, branch, runtime e data."),
+    metric("update-insights", "Insights de updates", "Launches, usuários e taxa de falha no escopo de cada grupo de update.", "Usa os campos explícitos de eas update:insights, preserva zeros reais e não apresenta a taxa de um update como taxa global do aplicativo."),
+    metric("observe", "Saúde e performance", "Eventos técnicos de inicialização, renderização e carregamento do aplicativo.", "Usa o resumo do EAS Observe por plataforma e versão. Eventos e identificadores anônimos não são tratados como usuários da base Pharus."),
     metric("saude-tecnica", "Saúde técnica", "Resumo dos eventos técnicos observados.", "Mostra a quantidade explicitamente devolvida pelo EAS Observe. Não inventa zero quando a informação não existe."),
     metric("contexto-pharus", "Contexto da base Pharus", "Fotografia agregada dos clientes e recursos do Pharus.", "Mostra totais da base oficial separadamente. Não existe hoje uma chave confirmada para ligar uma pessoa do Expo a um cliente específico."),
     metric("firebase-futuro", "Firebase Analytics", "Fonte futura para ampliar métricas de uso e comportamento.", "Em construção. Firebase não é consultado e não entra em nenhum cálculo atual.", { status: "pending" }),

@@ -80,19 +80,36 @@ test("Utilização do App comunica construção e não consulta Firebase automat
   const source = appUsageSourceBanner();
   assert.match(notice, /🔧 Em construção/u);
   assert.match(notice, /Expo\/EAS/);
-  assert.match(notice, /base do App Pharus/);
+  assert.match(notice, /base Pharus/);
   assert.match(notice, /Firebase Analytics/);
   assert.match(notice, /futuramente/);
   assert.doesNotMatch(notice, /PERMISSION_DENIED|erro técnico|falha ao consultar/i);
   assert.match(source, /Fonte atual dos dados: Expo \/ EAS \+ App Pharus/);
 
-  const [pageSource, serviceSource] = await Promise.all([
+  const [pageSource, serviceSource, chartSource, componentStyles] = await Promise.all([
     readFile(new URL("../../js/pages/utilizacao-app.js", import.meta.url), "utf8"),
     readFile(new URL("../../js/services/app-pharus/app-usage.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../../js/components/charts.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../../css/components.css", import.meta.url), "utf8"),
   ]);
   for (const code of [pageSource, serviceSource]) {
     assert.doesNotMatch(code, /firebase-usage|getFirebaseUsagePage|\/api\/firebase/i);
   }
+  for (const section of ["1. Uso do aplicativo", "2. Evolução do uso", "3. Plataforma", "4. Versões em uso", "5. Updates", "6. Saúde e performance", "7. Contexto da base Pharus"]) {
+    assert.match(pageSource, new RegExp(section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(pageSource, /eventos de performance[^]*não representam usuários únicos/i);
+  assert.match(pageSource, /não representam usuários únicos do Expo/i);
+  assert.match(pageSource, /usageLineChart/);
+  assert.match(pageSource, /chartGrid\([^]*, 1\)/);
+  assert.doesNotMatch(pageSource, /appUsageSourceBanner/);
+  assert.match(chartSource, /chart\.addEventListener\("scroll", hide/);
+  assert.match(componentStyles, /\.app-usage-kpi-grid[^]*repeat\(4/);
+  assert.match(componentStyles, /@media \(max-width: 1100px\)[^]*\.app-usage-kpi-grid[^]*repeat\(2/);
+  assert.match(componentStyles, /@media \(max-width: 720px\)[^]*\.app-usage-kpi-grid[^]*grid-template-columns: 1fr/);
+  assert.match(componentStyles, /\.chart-grid-full[^]*grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(componentStyles, /height: clamp\(320px, 31vw, 370px\)/);
+  assert.doesNotMatch(componentStyles.match(/\.usage-line-chart \{[^}]+\}/)?.[0] || "", /background:\s*(white|black|#fff|#000)/i);
 });
 
 test("página de documentação expõe busca e índice interno", async () => {

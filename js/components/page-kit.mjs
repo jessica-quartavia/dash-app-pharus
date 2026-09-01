@@ -28,10 +28,13 @@ export function appUsageSourceBanner() {
 }
 
 export function appUsageConstructionNotice() {
-  return `<aside class="app-construction-notice" role="note">
-    <strong>🔧 Em construção</strong>
-    <p>Esta página ainda está em construção. Hoje ela utiliza dados do Expo/EAS e informações da base do App Pharus. Em breve também será conectada ao Firebase Analytics para ampliar as métricas de utilização e comportamento do aplicativo.</p>
-    <small>Firebase Analytics será incorporado futuramente e ainda não faz parte dos cálculos atuais.</small>
+  return `<aside class="app-construction-notice app-usage-intro" role="note">
+    <span class="app-usage-tag">🔧 Em construção</span>
+    <div class="app-usage-intro-copy">
+      <strong>Fonte atual: Expo / EAS + App Pharus</strong>
+      <p>Os dados de utilização e informações técnicas vêm do Expo/EAS. Os dados de negócio são complementados pela base Pharus. A integração com Firebase Analytics será adicionada futuramente.</p>
+      <small>Dados agregados, sem vínculo individual com clientes.</small>
+    </div>
   </aside>`;
 }
 
