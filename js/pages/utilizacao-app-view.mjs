@@ -238,6 +238,43 @@ function contextKpis(pharus) {
   return kpiRow(rows, "kpi-row-secondary");
 }
 
+function expoCap(expo, key) {
+  return expo?.capabilities?.[key] === true;
+}
+
+function expoVersionsBody(expo) {
+  if (expoCap(expo, "versions") && expo.versionRows?.length) {
+    return hBars((expo.versionRows || []).map((row) => ({ label: `${row.version} · ${row.platform}`, count: row.events, percent: row.percent })).sort((a, b) => b.count - a.count), { compact: true, preserveOrder: true, initialLimit: 8 });
+  }
+  if (expoCap(expo, "versions")) return sectionEmpty("Sem dados no período");
+  return sectionUnavailable();
+}
+
+function expoUpdatesBody(expo) {
+  const channelHost = expoCap(expo, "channelInsights")
+    ? `<div id="expo-channel-insights-table-host"></div>`
+    : expoCap(expo, "runtimes") || expoCap(expo, "channels")
+      ? `<div id="expo-channel-runtime-table-host"></div>`
+      : sectionUnavailable();
+  const insightsHost = expoCap(expo, "updateInsights")
+    ? `<div id="expo-update-insights-table-host"></div>`
+    : `<p class="usage-quiet-empty">Dados de insights detalhados disponíveis apenas no diagnóstico local</p>`;
+  const runtimeHost = expoCap(expo, "runtimes") || (expo.updates || []).length
+    ? `<div id="expo-updates-table-host"></div>`
+    : sectionUnavailable();
+  return `<h4 class="subsection-title">Por channel e runtime</h4>${channelHost}<h4 class="subsection-title">Insights por grupo de update</h4>${insightsHost}<h4 class="subsection-title">Runtime versions e deployments</h4>${runtimeHost}`;
+}
+
+function expoBuildsBody(expo) {
+  if (expoCap(expo, "builds") || (expo.builds || []).length) return `<div id="expo-builds-table-host"></div>`;
+  return sectionUnavailable();
+}
+
+function expoHealthBody(expo) {
+  if (expoCap(expo, "observe")) return `<div id="expo-performance-table-host"></div>`;
+  return sectionUnavailable();
+}
+
 function expoSectionBody(expo, extra = "") {
   if (expo?.loading) return expoLoading();
   if (!expo?.available) return expoError();
@@ -250,8 +287,6 @@ export function renderUtilizacaoApp(data = {}) {
   const pharus = data.pharus || data.context || {};
   const ga4Series = analytics.available && analytics.usageSeries?.length;
   const ga4Events = analytics.available && analytics.events?.length;
-  const expoVersions = expo.available && expo.versionRows?.length;
-  const observeAvailable = Boolean(expo.available && expo.observe?.configured);
   const periodNote = analytics.period?.startDate
     ? "O filtro de período é aplicado ao Google Analytics."
     : "O Google Analytics usa os últimos 30 dias quando nenhum período é escolhido.";
@@ -299,33 +334,23 @@ export function renderUtilizacaoApp(data = {}) {
       id: "sec-expo-versions",
       title: "5. Versões do App",
       lead: "Informação técnica do Expo/EAS, não um indicador de usuários da plataforma.",
-      body: expoSectionBody(
-        expo,
-        expoVersions
-          ? hBars((expo.versionRows || []).map((row) => ({ label: `${row.version} · ${row.platform}`, count: row.events, percent: row.percent })).sort((a, b) => b.count - a.count), { compact: true, preserveOrder: true, initialLimit: 8 })
-          : sectionEmpty("Sem dados no período"),
-      ),
+      body: expoSectionBody(expo, expoVersionsBody(expo)),
     })}
     ${sectionBlock({
       id: "sec-expo-updates",
       title: "6. Updates e runtime",
-      body: expoSectionBody(expo, `<h4 class="subsection-title">Por channel e runtime</h4><div id="expo-channel-insights-table-host"></div><h4 class="subsection-title">Insights por grupo de update</h4><div id="expo-update-insights-table-host"></div><h4 class="subsection-title">Runtime versions e deployments</h4><div id="expo-updates-table-host"></div>`),
+      body: expoSectionBody(expo, expoUpdatesBody(expo)),
     })}
     ${sectionBlock({
       id: "sec-expo-builds",
       title: "7. Builds e deployments",
-      body: expoSectionBody(expo, `<div id="expo-builds-table-host"></div>`),
+      body: expoSectionBody(expo, expoBuildsBody(expo)),
     })}
     ${sectionBlock({
       id: "sec-expo-health",
       title: "8. Saúde e performance",
       lead: "Medições técnicas do EAS Observe, quando a fonte retornar eventos.",
-      body: expoSectionBody(
-        expo,
-        observeAvailable
-          ? `<div id="expo-performance-table-host"></div>`
-          : sectionUnavailable(),
-      ),
+      body: expoSectionBody(expo, expoHealthBody(expo)),
     })}
     ${sectionBlock({
       id: "sec-app-context",

@@ -42,6 +42,16 @@ export const EXPO_FALLBACK = {
   updateInsights: [],
   observe: null,
   availability: {},
+  capabilities: {
+    channels: false,
+    runtimes: false,
+    versions: false,
+    updateInsights: false,
+    channelInsights: false,
+    builds: false,
+    observe: false,
+  },
+  runtimes: [],
 };
 
 export const PHARUS_FALLBACK = {

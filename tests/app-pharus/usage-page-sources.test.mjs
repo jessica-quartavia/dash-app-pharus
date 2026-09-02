@@ -65,6 +65,16 @@ const expoOk = {
   updateInsights: [],
   observe: { configured: true, performanceRows: [], totalEvents: 4087 },
   availability: { channelInsights: "ok", observe: "ok" },
+  capabilities: {
+    channels: true,
+    runtimes: true,
+    versions: true,
+    updateInsights: true,
+    channelInsights: true,
+    builds: true,
+    observe: true,
+  },
+  runtimes: [{ id: "r1", channel: "production", branch: "main", runtimeVersion: "abc" }],
 };
 
 const pharusOk = {
@@ -293,4 +303,37 @@ test("retry Analytics não apaga Expo", async () => {
   });
   assert.equal(page.sources.analytics, "connected");
   assert.equal(page.sources.expo, "connected");
+});
+
+test("Vercel sem Observe não mostra versões como zero do período", () => {
+  const expoServerless = {
+    available: true,
+    integration: { authenticated: true, projectResolved: true },
+    capabilities: {
+      channels: true,
+      runtimes: true,
+      versions: false,
+      updateInsights: false,
+      channelInsights: false,
+      builds: true,
+      observe: false,
+    },
+    versionRows: [],
+    channels: [{ name: "production" }, { name: "preview" }, { name: "development" }],
+    runtimes: [
+      { id: "r1", channel: "production", runtimeVersion: "1.2.1" },
+      { id: "r2", channel: "preview", runtimeVersion: "1.2.1" },
+    ],
+    updates: [{ id: "u1", channel: "production", runtimeVersion: "1.2.1" }],
+    builds: [{ id: "b1", platform: "IOS", version: "1.2.1", status: "FINISHED" }],
+    channelInsights: [],
+    updateInsights: [],
+    observe: null,
+  };
+  const html = renderUtilizacaoApp(mergeUsageSources({ analytics: analyticsOk, expo: expoServerless, pharus: pharusOk }));
+  assert.match(html, /Métrica não disponível nesta integração/);
+  assert.match(html, /Dados de insights detalhados disponíveis apenas no diagnóstico local/);
+  assert.match(html, /expo-channel-runtime-table-host/);
+  assert.doesNotMatch(html, /expo-channel-insights-table-host/);
+  assert.doesNotMatch(html, /expo-update-insights-table-host/);
 });

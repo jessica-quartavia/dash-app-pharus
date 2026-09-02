@@ -27,7 +27,9 @@ export default async function handler(req, res) {
       status,
       {
         ...payload,
+        ok: Boolean(payload.available),
         available: payload.available,
+        projectResolved: Boolean(payload.integration?.projectResolved),
         error: payload.available ? null : payload.userMessage,
       },
       { "Cache-Control": "private, max-age=120" },

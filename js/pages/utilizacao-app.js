@@ -38,6 +38,16 @@ const updateInsightsTable = mountInteractiveTable("expo-update-insights-table-ho
   ], onRowClick: () => {},
 });
 
+const channelRuntimeTable = mountInteractiveTable("expo-channel-runtime-table-host", {
+  defaultState: { sortKey: "channel", sortDir: "asc" }, rowIdKey: "id",
+  title: (rows) => `${formatNumber(rows.length)} channels e runtimes`,
+  columns: [
+    { key: "channel", label: "Channel", sortable: true, value: (row) => escapeHtml(row.channel || "—") },
+    { key: "branch", label: "Branch", sortable: true, value: (row) => escapeHtml(row.branch || "—") },
+    { key: "runtimeVersion", label: "Runtime", sortable: true, value: (row) => `<code>${escapeHtml(String(row.runtimeVersion || "—").slice(0, 20))}</code>` },
+  ], onRowClick: () => {},
+});
+
 const performanceTable = mountInteractiveTable("expo-performance-table-host", {
   defaultState: { sortKey: "eventCount", sortDir: "desc" }, rowIdKey: "id",
   title: (rows) => `${formatNumber(rows.length)} medições por versão e plataforma`,
@@ -77,16 +87,29 @@ export function bindUtilizacaoApp(data) {
   lastUsagePage = data;
   const expo = data.expo || {};
   if (!expo.loading && expo.available) {
-    channelInsightsTable.mount({ rows: (expo.channelInsights || []).map((row, index) => ({ ...row, id: `${row.channel}-${row.runtimeVersion}-${index}` })) });
-    updateInsightsTable.mount({ rows: (expo.updateInsights || []).map((row) => ({
-      ...row,
-      uniqueUsersValue: row.uniqueUsers?.status === "available" ? row.uniqueUsers.value : null,
-      launchesValue: row.launches?.status === "available" ? row.launches.value : null,
-      crashRateValue: row.crashRate?.status === "available" ? row.crashRate.value : null,
-    })) });
-    performanceTable.mount({ rows: expo.observe?.performanceRows || [] });
-    buildsTable.mount({ rows: expo.builds || [] });
-    updatesTable.mount({ rows: expo.updates || [] });
+    if (document.getElementById("expo-channel-insights-table-host")) {
+      channelInsightsTable.mount({ rows: (expo.channelInsights || []).map((row, index) => ({ ...row, id: `${row.channel}-${row.runtimeVersion}-${index}` })) });
+    }
+    if (document.getElementById("expo-channel-runtime-table-host")) {
+      channelRuntimeTable.mount({ rows: (expo.runtimes || expo.updates || []).map((row, index) => ({ ...row, id: row.id || `${row.channel}-${row.runtimeVersion}-${index}` })) });
+    }
+    if (document.getElementById("expo-update-insights-table-host")) {
+      updateInsightsTable.mount({ rows: (expo.updateInsights || []).map((row) => ({
+        ...row,
+        uniqueUsersValue: row.uniqueUsers?.status === "available" ? row.uniqueUsers.value : null,
+        launchesValue: row.launches?.status === "available" ? row.launches.value : null,
+        crashRateValue: row.crashRate?.status === "available" ? row.crashRate.value : null,
+      })) });
+    }
+    if (document.getElementById("expo-performance-table-host")) {
+      performanceTable.mount({ rows: expo.observe?.performanceRows || [] });
+    }
+    if (document.getElementById("expo-builds-table-host")) {
+      buildsTable.mount({ rows: expo.builds || [] });
+    }
+    if (document.getElementById("expo-updates-table-host")) {
+      updatesTable.mount({ rows: expo.updates || expo.runtimes || [] });
+    }
   }
   const root = document.getElementById("page-content") || document;
   bindUsageLineChartTooltips(root);
