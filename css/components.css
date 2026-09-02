@@ -381,8 +381,17 @@
 
 .app-usage-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
+}
+
+.app-usage-kpi-followup {
+  margin-top: 12px;
+}
+
+.app-usage-kpi-followup .app-usage-kpi-grid {
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  max-width: 560px;
 }
 
 .app-usage-kpi {
@@ -454,9 +463,93 @@
   font-size: 0.6875rem;
 }
 
+.usage-source-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 var(--space-3);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.usage-source-status strong {
+  margin-right: 4px;
+  color: var(--muted);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.usage-source-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  color: var(--foreground);
+  font-size: 0.75rem;
+}
+
+.usage-source-chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.usage-source-chip.is-connected i {
+  background: var(--foreground);
+}
+
+.usage-source-chip.is-loading i {
+  background: color-mix(in srgb, var(--color-warning) 80%, var(--muted));
+}
+
+.usage-source-chip.is-unavailable {
+  color: var(--muted);
+}
+
+.usage-platform-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.usage-platform-pill span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.usage-platform-pill strong {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+}
+
+.usage-quiet-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
 @media (max-width: 1100px) {
   .app-usage-kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-usage-kpi-followup .app-usage-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: none;
   }
 }
 

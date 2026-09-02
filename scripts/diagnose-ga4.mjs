@@ -2,9 +2,15 @@ import { existsSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { BetaAnalyticsDataClient } from "@google-analytics/data";
 import { loadProjectEnv } from "../lib/load-env.mjs";
 import { resolveGa4Config, safeGa4Error } from "../lib/firebase-analytics/config.mjs";
+import {
+  APP_EVENT_NAMES,
+  GA4_METRICS,
+  WEB_EVENT_NAMES,
+  createGa4DataClient,
+  queryGa4Usage,
+} from "../lib/firebase-analytics/usage.mjs";
 
 const EXPECTED_PROJECT_ID = "pharus-app";
 const EXPECTED_CLIENT_EMAIL = "firebase-adminsdk-fbsvc@pharus-app.iam.gserviceaccount.com";
@@ -46,37 +52,69 @@ function errorDetails(error) {
   return { classification: "API_ERROR", dataApiReachable: code > 0 && code !== 14 };
 }
 
-function numberValue(response) {
-  const raw = response?.rows?.[0]?.metricValues?.[0]?.value;
-  const value = Number(raw);
-  return Number.isFinite(value) ? value : null;
+function printMetric(name, result) {
+  if (!result || result.supported === false) {
+    console.log(`${name}: unavailable${result?.error ? ` (${result.error})` : ""}`);
+    return;
+  }
+  console.log(`${name}: ${result.value ?? "no rows"}`);
 }
 
-function rows(response, dimensions, metric) {
-  return (response?.rows || []).map((row) => {
-    const item = {};
-    dimensions.forEach((name, index) => {
-      item[name] = row.dimensionValues?.[index]?.value || "(not set)";
+function formatSeconds(value) {
+  if (value == null || !Number.isFinite(Number(value))) return "unavailable";
+  const total = Math.round(Number(value));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  if (hours) return `${hours}h ${minutes}min ${seconds}s (${total}s)`;
+  if (minutes) return `${minutes}min ${seconds}s (${total}s)`;
+  return `${seconds}s`;
+}
+
+async function queryWindow(client, property, metric, startDate, endDate) {
+  try {
+    const [response] = await client.runReport({
+      property,
+      dateRanges: [{ startDate, endDate }],
+      metrics: [{ name: metric }],
     });
-    const value = Number(row.metricValues?.[0]?.value);
-    item[metric] = Number.isFinite(value) ? value : null;
-    return item;
-  });
+    const raw = response?.rows?.[0]?.metricValues?.[0]?.value;
+    const value = Number(raw);
+    return { supported: true, value: Number.isFinite(value) ? value : null };
+  } catch (error) {
+    return { supported: false, value: null, error: safeGa4Error(error) };
+  }
 }
 
-function masked(value) {
-  const text = String(value || "");
-  if (text.length < 9) return "[masked]";
-  return `${text.slice(0, 4)}…${text.slice(-4)}`;
-}
-
-function looksLikeUuid(value) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
-}
-
-async function runReport(client, property, request) {
-  const [response] = await client.runReport({ property, ...request });
-  return response;
+async function probeRetention(client, property) {
+  try {
+    await client.runReport({
+      property,
+      dimensions: [{ name: "cohort" }, { name: "cohortNthDay" }],
+      metrics: [{ name: "cohortActiveUsers" }],
+      cohortSpec: {
+        cohorts: [{
+          name: "cohort",
+          dimension: "firstSessionDate",
+          dateRange: { startDate: "28daysAgo", endDate: "21daysAgo" },
+        }],
+        cohortsRange: { granularity: "DAILY", startOffset: 0, endOffset: 7 },
+      },
+    });
+    return {
+      available: false,
+      probed: true,
+      message: "Retenção: indisponível pela integração atual",
+      reason: "A API de coorte existe, mas não é um equivalente simples e direto da retenção do painel Firebase.",
+    };
+  } catch (error) {
+    return {
+      available: false,
+      probed: true,
+      message: "Retenção: indisponível pela integração atual",
+      reason: safeGa4Error(error),
+    };
+  }
 }
 
 loadProjectEnv(root);
@@ -132,7 +170,7 @@ if (!credentialJsonValid) {
     console.log(`Configuration valid: false (${config.errorCode || "invalid configuration"})`);
     process.exitCode = 1;
   } else {
-    const client = new BetaAnalyticsDataClient({ ...config.clientOptions, scopes: [READONLY_SCOPE] });
+    const client = createGa4DataClient({ ...config, clientOptions: { ...config.clientOptions, scopes: [READONLY_SCOPE] } });
     let oauthGenerated = false;
     let oauthError = null;
     try {
@@ -150,39 +188,27 @@ if (!credentialJsonValid) {
     if (oauthError) console.log(`Authentication error: ${safeGa4Error(oauthError)}`);
 
     const property = `properties/${propertyId}`;
-    let basicResponse = null;
     let basicError = null;
+    let usage = null;
     if (oauthGenerated) {
       try {
-        basicResponse = await runReport(client, property, {
-          dateRanges: [{ startDate: "28daysAgo", endDate: "today" }],
-          dimensions: [{ name: "date" }],
-          metrics: [{ name: "activeUsers" }],
-          orderBys: [{ dimension: { dimensionName: "date" } }],
-        });
+        usage = await queryGa4Usage({ startDate: undefined, endDate: undefined }, { config, client, force: true, includeSamples: true });
       } catch (error) {
         basicError = error;
+        usage = null;
       }
     }
     const classified = basicError ? errorDetails(basicError) : null;
-    const authorized = Boolean(basicResponse);
-    const basicRows = basicResponse?.rows || [];
-    const latestDailyValue = basicRows.length ? Number(basicRows.at(-1)?.metricValues?.[0]?.value) : null;
+    const authorized = Boolean(usage?.available);
+    const latestDailyValue = usage?.dailySummary?.lastValue ?? null;
 
     console.log("");
-    console.log("GA4");
+    console.log("PROPERTY");
+    console.log(`property id: ${propertyId}`);
     console.log(`Data API reachable: ${authorized || classified?.dataApiReachable || false}`);
-    console.log(`Property: ${propertyId}`);
     console.log(`Property authorization: ${authorized ? "OK" : classified?.classification === "PROPERTY_PERMISSION_DENIED" ? "DENIED" : "UNKNOWN"}`);
-    console.log("");
-    console.log("BASIC REPORT");
-    console.log(`Request sent: ${oauthGenerated}`);
-    console.log(`Response received: ${authorized}`);
-    console.log(`activeUsers: ${authorized ? "OK" : "ERROR"}`);
-    console.log(`Rows: ${basicRows.length}`);
-    console.log(`Latest daily value: ${authorized && Number.isFinite(latestDailyValue) ? latestDailyValue : "unavailable"}`);
-    console.log(`Error classification: ${classified?.classification || "none"}`);
     if (basicError) console.log(`Error: ${safeGa4Error(basicError)}`);
+    if (usage?.userMessage && !authorized) console.log(`Usage error: ${usage.userMessage}`);
 
     if (!authorized) {
       console.log("");
@@ -194,107 +220,102 @@ if (!credentialJsonValid) {
       console.log("METRICS / PLATFORM / VERSIONS / EVENTS / IDENTIFICATION");
       console.log("Skipped because the minimum activeUsers report was not authorized.");
     } else {
-      const metricNames = ["activeUsers", "active1DayUsers", "active7DayUsers", "active28DayUsers", "sessions", "newUsers", "eventCount", "engagedSessions", "userEngagementDuration"];
-      const metricResults = {};
-      for (const metric of metricNames) {
-        try {
-          const response = await runReport(client, property, {
-            dateRanges: [{ startDate: "28daysAgo", endDate: "today" }],
-            metrics: [{ name: metric }],
-          });
-          metricResults[metric] = { supported: true, value: numberValue(response) };
-        } catch (error) {
-          metricResults[metric] = { supported: false, value: null, error: safeGa4Error(error) };
-        }
-      }
+      const metricResults = usage.metricResults || {};
       console.log("");
       console.log("METRICS");
-      for (const [name, result] of Object.entries(metricResults)) {
-        console.log(`${name}: ${result.supported ? result.value ?? "no rows" : `unavailable (${result.error})`}`);
-      }
+      for (const name of GA4_METRICS) printMetric(name, metricResults[name]);
 
-      const daily = rows(basicResponse, ["date"], "activeUsers");
+      const windows = {
+        "activeUsers today": await queryWindow(client, property, "activeUsers", "today", "today"),
+        "activeUsers yesterday": await queryWindow(client, property, "activeUsers", "yesterday", "yesterday"),
+        "activeUsers 7d window": await queryWindow(client, property, "activeUsers", "6daysAgo", "today"),
+        "activeUsers 28d window": await queryWindow(client, property, "activeUsers", "27daysAgo", "today"),
+        "activeUsers 30d window": await queryWindow(client, property, "activeUsers", "29daysAgo", "today"),
+      };
+      console.log("");
+      console.log("WINDOWS (activeUsers by date range, not summed daily)");
+      for (const [label, result] of Object.entries(windows)) printMetric(label, result);
+
+      const daily = usage.dailySummary || {};
       console.log("");
       console.log("DAILY");
-      console.log(`First date: ${daily[0]?.date || "unavailable"}`);
-      console.log(`Last date: ${daily.at(-1)?.date || "unavailable"}`);
-      console.log(`Points: ${daily.length}`);
+      console.log(`First date: ${daily.firstDate || "unavailable"}`);
+      console.log(`Last date: ${daily.lastDate || "unavailable"}`);
+      console.log(`Min: ${daily.min ?? "unavailable"}`);
+      console.log(`Max: ${daily.max ?? "unavailable"}`);
+      console.log(`Last value: ${daily.lastValue ?? "unavailable"}`);
+      console.log(`Points: ${daily.points ?? 0}`);
 
-      const platformResponse = await runReport(client, property, {
-        dateRanges: [{ startDate: "28daysAgo", endDate: "today" }], dimensions: [{ name: "platform" }], metrics: [{ name: "activeUsers" }],
-        orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
-      });
-      const platforms = rows(platformResponse, ["platform"], "activeUsers");
+      const platforms = usage.classification || {};
       console.log("");
       console.log("PLATFORM");
-      for (const item of platforms) console.log(`${item.platform}: ${item.activeUsers}`);
+      console.log(`WEB = ${platforms.WEB ?? "unavailable"}`);
+      console.log(`ANDROID = ${platforms.ANDROID ?? "unavailable"}`);
+      console.log(`IOS = ${platforms.IOS ?? "unavailable"}`);
+      if (platforms.other?.length) {
+        for (const item of platforms.other) console.log(`${item.platform} = ${item.activeUsers}`);
+      }
+      console.log(`Property type: ${String(platforms.kind || "unknown").toUpperCase()}`);
 
-      const versionsResponse = await runReport(client, property, {
-        dateRanges: [{ startDate: "28daysAgo", endDate: "today" }], dimensions: [{ name: "appVersion" }, { name: "platform" }], metrics: [{ name: "activeUsers" }],
-        orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }], limit: 10,
-      });
-      const versionRows = rows(versionsResponse, ["appVersion", "platform"], "activeUsers");
       console.log("");
       console.log("VERSIONS");
-      for (const item of versionRows) console.log(`${item.appVersion} | ${item.platform} | ${item.activeUsers}`);
+      for (const item of (usage.versionRows || []).slice(0, 15)) {
+        console.log(`${item.version} | ${item.platform || "(not set)"} | ${item.activeUsers}`);
+      }
+      if (!usage.versionRows?.length) console.log("No appVersion rows returned.");
 
-      const eventsResponse = await runReport(client, property, {
-        dateRanges: [{ startDate: "28daysAgo", endDate: "today" }], dimensions: [{ name: "eventName" }], metrics: [{ name: "eventCount" }],
-        orderBys: [{ metric: { metricName: "eventCount" }, desc: true }], limit: 20,
-      });
-      const eventRows = rows(eventsResponse, ["eventName"], "eventCount");
       console.log("");
       console.log("EVENTS");
-      for (const item of eventRows) console.log(`${item.eventName}: ${item.eventCount}`);
-
-      const webEvents = new Set(["page_view", "scroll", "click", "form_start", "form_submit", "view_search_results"]);
-      const appEvents = new Set(["screen_view", "app_open", "app_update", "app_remove", "first_open", "in_app_purchase", "notification_open"]);
-      const hasWebPlatform = platforms.some((item) => item.platform.toUpperCase() === "WEB" && item.activeUsers > 0);
-      const hasMobilePlatform = platforms.some((item) => ["ANDROID", "IOS"].includes(item.platform.toUpperCase()) && item.activeUsers > 0);
-      const hasAppVersion = versionRows.some((item) => ["ANDROID", "IOS"].includes(item.platform.toUpperCase()) && !["", "(not set)"].includes(item.appVersion));
-      const hasWebEvents = eventRows.some((item) => webEvents.has(item.eventName));
-      const hasAppEvents = eventRows.some((item) => appEvents.has(item.eventName));
-      const propertyType = hasWebPlatform && hasMobilePlatform ? "mixed" : hasMobilePlatform ? "mobile" : "web";
-      console.log("");
-      console.log("CLASSIFICATION");
+      for (const item of usage.events || []) {
+        console.log(`${item.name}: ${item.count} [${item.class}]`);
+      }
+      const hasWebEvents = (usage.events || []).some((item) => WEB_EVENT_NAMES.includes(item.name));
+      const hasAppEvents = (usage.events || []).some((item) => APP_EVENT_NAMES.includes(item.name));
       console.log(`Typical web events: ${hasWebEvents}`);
       console.log(`Typical app events: ${hasAppEvents}`);
-      console.log(`Property type: ${propertyType}`);
-      console.log(`App versions confirmed: ${hasAppVersion}`);
-      console.log(`Can feed App Usage: ${hasMobilePlatform && hasAppVersion}`);
-      console.log(`Recommended GA4 section: ${hasMobilePlatform && hasAppVersion ? "App Usage" : "Pharus Web Usage"}`);
 
-      const [metadata] = await client.getMetadata({ name: `${property}/metadata` });
-      const idCandidates = (metadata.dimensions || []).filter((item) => {
-        const text = `${item.apiName || ""} ${item.uiName || ""} ${item.description || ""}`.toLowerCase();
-        return /user.?id|uuid|supabase/.test(text) && item.apiName !== "signedInWithUserId";
-      });
-      let idEvidence = null;
-      for (const candidate of idCandidates) {
-        try {
-          const sampleResponse = await runReport(client, property, {
-            dateRanges: [{ startDate: "28daysAgo", endDate: "today" }], dimensions: [{ name: candidate.apiName }], metrics: [{ name: "activeUsers" }], limit: 5,
-          });
-          const samples = rows(sampleResponse, [candidate.apiName], "activeUsers").map((item) => item[candidate.apiName]).filter((value) => value && value !== "(not set)");
-          if (samples.length) {
-            idEvidence = { candidate, samples };
-            break;
-          }
-        } catch {
-          // A metadata candidate may not be compatible with activeUsers.
-        }
-      }
+      const engagement = usage.engagement || {};
+      console.log("");
+      console.log("ENGAGEMENT");
+      console.log(`sessionsPerUser: ${engagement.sessionsPerUser ?? "unavailable"}`);
+      console.log(`averageSessionDuration: ${formatSeconds(engagement.averageSessionDuration)}`);
+      console.log(`userEngagementDuration: ${formatSeconds(engagement.userEngagementDuration)}`);
+      console.log(`average engagement per active user: ${formatSeconds(engagement.averageEngagementPerActiveUser)}`);
+      console.log(`average engagement source: ${engagement.averageEngagementPerActiveUserSource || "unavailable"}`);
+
+      const retention = await probeRetention(client, property);
+      console.log("");
+      console.log("RETENTION");
+      console.log(retention.message);
+      console.log(`Reason: ${retention.reason}`);
+
+      const identification = usage.userId || {};
       console.log("");
       console.log("IDENTIFICATION");
-      console.log(`GA4 userId available: ${Boolean(idEvidence)}`);
-      console.log(`Possible Supabase relationship: ${Boolean(idEvidence?.samples.some(looksLikeUuid))}`);
-      if (idEvidence) {
-        console.log(`Field: ${idEvidence.candidate.apiName}`);
-        console.log(`Samples (masked): ${idEvidence.samples.map(masked).join(", ")}`);
-        console.log(`UUID-like sample: ${idEvidence.samples.some(looksLikeUuid)}`);
-      } else {
-        console.log("No real identifier compatible with auth.users.id was confirmed. signedInWithUserId is only a boolean indicator.");
+      console.log(`userId available: ${Boolean(identification.available)}`);
+      console.log(`possible Supabase relationship: ${Boolean(identification.possibleSupabaseRelationship)}`);
+      console.log(`Field: ${identification.field || "none"}`);
+      console.log(`Origin: ${identification.origin || "none"}`);
+      console.log(`Distinct in sample: ${identification.distinctInSample || 0}`);
+      console.log(`UUID-like sample: ${Boolean(identification.uuidLike)}`);
+      if (identification.candidates?.length) {
+        console.log(`Candidates probed: ${identification.candidates.map((item) => item.apiName).join(", ")}`);
       }
+      if (identification.maskedSamples?.length) console.log(`Samples (masked): ${identification.maskedSamples.join(", ")}`);
+      console.log(identification.note || "");
+
+      console.log("");
+      console.log("SUMMARY");
+      console.log(`PROPERTY ${propertyId}`);
+      console.log(`METRICS activeUsers 1d=${metricResults.active1DayUsers?.value ?? "unavailable"} 7d=${metricResults.active7DayUsers?.value ?? "unavailable"} 28d=${metricResults.active28DayUsers?.value ?? "unavailable"}`);
+      console.log(`NOTE 1d/7d/28d use official snapshot metrics on the last day of the range, not summed daily users.`);
+      console.log(`METRICS sessions=${metricResults.sessions?.value ?? "unavailable"} newUsers=${metricResults.newUsers?.value ?? "unavailable"} events=${metricResults.eventCount?.value ?? "unavailable"} sessionsPerUser=${metricResults.sessionsPerUser?.value ?? "unavailable"}`);
+      console.log(`METRICS engagement=${formatSeconds(engagement.averageEngagementPerActiveUser)}`);
+      console.log(`PLATFORM WEB=${platforms.WEB ?? "unavailable"} ANDROID=${platforms.ANDROID ?? "unavailable"} IOS=${platforms.IOS ?? "unavailable"}`);
+      console.log(`VERSIONS ${(usage.versionRows || []).slice(0, 8).map((item) => `${item.version}/${item.platform}`).join(", ") || "none"}`);
+      console.log(`EVENTS ${(usage.events || []).slice(0, 8).map((item) => item.name).join(", ") || "none"}`);
+      console.log(`IDENTIFICATION userId available=${Boolean(identification.available)} possible Supabase relationship=${Boolean(identification.possibleSupabaseRelationship)}`);
+      console.log(`Latest daily value: ${latestDailyValue ?? "unavailable"}`);
     }
     await client.close();
   }

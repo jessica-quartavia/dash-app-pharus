@@ -127,7 +127,7 @@ function dayLongLabel(dateStr) {
   }).format(d);
 }
 
-export function usageLineChart(series, { valueKey = "count", maxItems = 90 } = {}) {
+export function usageLineChart(series, { valueKey = "count", maxItems = 90, unit = "uniqueUsers" } = {}) {
   const source = Array.isArray(series) ? series : [];
   const list = (maxItems && source.length > maxItems ? source.slice(-maxItems) : source)
     .map((item) => ({ ...item, value: Number(item[valueKey]) }))
@@ -158,7 +158,10 @@ export function usageLineChart(series, { valueKey = "count", maxItems = 90 } = {
   }).join("");
   const pointMarkup = points.map((point, index) => {
     const date = dayLongLabel(point.date || point.label);
-    const countLabel = `${formatNumber(point.value)} ${point.value === 1 ? "usuário único" : "usuários únicos"}`;
+    const unitLabel = unit === "activeUsers"
+      ? (point.value === 1 ? "usuário ativo" : "usuários ativos")
+      : (point.value === 1 ? "usuário único" : "usuários únicos");
+    const countLabel = `${formatNumber(point.value)} ${unitLabel}`;
     const tooltip = `${date}\n${countLabel}`;
     const latest = index === points.length - 1;
     return `<g class="usage-line-point${latest ? " is-latest" : ""}" tabindex="0" role="img" aria-label="${escapeHtml(`${date}, ${countLabel}`)}" data-line-point data-x="${point.x}" data-y="${point.y}" data-tooltip="${escapeHtml(tooltip)}">

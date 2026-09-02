@@ -55,10 +55,32 @@ test("métricas reais, período, plataforma, versão e eventos são apresentados
   assert.equal(result.platformSplit[0].percent, 75);
   assert.equal(result.versionRows[0].activeUsers, 6);
   assert.equal(result.events[0].name, "open_finance_connected");
-  assert.ok(client.requests.every((request) => request.dateRanges[0].startDate === "2026-08-01"));
-  assert.ok(client.requests.every((request) => request.dateRanges[0].endDate === "2026-08-20"));
+  assert.equal(result.classification.ANDROID, 6);
+  assert.equal(result.classification.kind, "mobile");
   assert.equal(result.retention.available, false);
   assert.equal(result.userId.supabaseMappingConfirmed, false);
+  const snapshotNames = new Set(["active1DayUsers", "active7DayUsers", "active28DayUsers"]);
+  for (const request of client.requests) {
+    if (!request.dateRanges) continue;
+    const metricName = request.metrics?.[0]?.name;
+    if (snapshotNames.has(metricName) && request.metrics.length === 1 && !request.dimensions?.length) {
+      assert.equal(request.dateRanges[0].startDate, "2026-08-20");
+      assert.equal(request.dateRanges[0].endDate, "2026-08-20");
+    } else {
+      assert.equal(request.dateRanges[0].startDate, "2026-08-01");
+      assert.equal(request.dateRanges[0].endDate, "2026-08-20");
+    }
+  }
+});
+
+test("métrica ausente na metadata não vira zero", async () => {
+  const client = fakeClient();
+  client.getMetadata = async () => [{ dimensions, metrics: metrics.filter((item) => item.apiName !== "sessionsPerUser") }];
+  const result = await queryGa4Usage({ startDate: "2026-08-01", endDate: "2026-08-20" }, { config, client });
+  assert.equal(result.availability.metrics.sessionsPerUser, false);
+  assert.equal(result.summary.sessionsPerUser, null);
+  assert.equal(result.metricResults.sessionsPerUser.supported, false);
+  assert.ok(!result.kpis.some((item) => item.key === "sessionsPerUser"));
 });
 
 test("erro da API retorna estado controlado sem segredo", async () => {

@@ -24,6 +24,18 @@ export function formatDecimal(value, { digits = 1 } = {}) {
   });
 }
 
+export function formatDurationSeconds(value) {
+  if (value == null || Number.isNaN(Number(value))) return "—";
+  const total = Math.max(0, Math.round(Number(value)));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  if (hours) return `${hours}h ${minutes} min`;
+  if (minutes && seconds) return `${minutes} min ${seconds} s`;
+  if (minutes) return `${minutes} min`;
+  return `${seconds} s`;
+}
+
 export function formatPercent(value, { digits } = {}) {
   if (value == null || Number.isNaN(Number(value))) return "—";
   const n = Number(value);

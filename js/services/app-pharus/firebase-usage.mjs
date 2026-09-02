@@ -6,10 +6,12 @@ const TTL_MS = 120_000;
 
 const FALLBACK = {
   available: false,
-  userMessage: "Firebase Analytics temporariamente indisponível.",
+  userMessage: "Google Analytics temporariamente indisponível.",
   integration: { authenticated: false, propertyResolved: false },
   availability: { metrics: {}, dimensions: {} },
   kpis: [], usageSeries: [], platformSplit: [], versionRows: [], events: [],
+  engagement: { sessionsPerUser: null, averageSessionDuration: null, userEngagementDuration: null, averageEngagementPerActiveUser: null },
+  classification: { WEB: null, ANDROID: null, IOS: null, other: [], kind: "unknown" },
   retention: { available: false, message: "Não disponível pela integração atual" },
   userId: { available: false, supabaseMappingConfirmed: false },
 };
