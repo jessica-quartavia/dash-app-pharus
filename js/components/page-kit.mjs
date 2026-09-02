@@ -31,9 +31,9 @@ export function appUsageConstructionNotice() {
   return `<aside class="app-construction-notice app-usage-intro" role="note">
     <span class="app-usage-tag">🔧 Em construção</span>
     <div class="app-usage-intro-copy">
-      <strong>Fontes de dados: Google Analytics + Expo / EAS + App Pharus</strong>
-      <p>O Google Analytics apresenta uso da plataforma web. O Expo/EAS complementa com informações do aplicativo e dados técnicos de builds, versões e atualizações. A base Pharus fornece o contexto de negócio.</p>
-      <small>Os dados mobile do Firebase Analytics serão incorporados futuramente.</small>
+      <strong>Fonte dos dados: Google Analytics + Expo / EAS + App Pharus</strong>
+      <p>O Google Analytics fornece métricas de utilização e comportamento da plataforma. O Expo/EAS complementa com informações técnicas do aplicativo, como builds, versões, updates e runtime. A base Pharus fornece o contexto de negócio.</p>
+      <small>Os dados do Expo/EAS podem levar alguns segundos para carregar.</small>
     </div>
   </aside>`;
 }

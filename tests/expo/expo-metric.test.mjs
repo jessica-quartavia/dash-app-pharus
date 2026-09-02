@@ -90,6 +90,6 @@ test("gráfico de uso é linha, usa datas pt-BR e destaca o último ponto sem mu
   assert.match(markup, /31 de agosto de 2026/);
   assert.match(markup, /4 usuários únicos/);
   assert.match(markup, />1 set</);
-  assert.match(markup, /usage-line-point is-latest/);
+  assert.doesNotMatch(markup, /usage-line-point is-latest/);
   assert.doesNotMatch(markup, /acq-col-bar/);
 });

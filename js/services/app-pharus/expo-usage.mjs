@@ -41,14 +41,17 @@ export async function getExpoUsagePage(filters, { force = false } = {}) {
   }
 
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 90_000);
     const response = await authenticatedFetch(`/api/expo/usage${query ? `?${query}` : ""}`, {
       cache: "no-store",
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timer));
     const contentType = response.headers.get("content-type") || "";
     if (contentType.includes("application/json")) {
       const payload = await response.json().catch(() => null);
       if (payload && typeof payload === "object") {
-        cache = { at: Date.now(), data: payload, key: cacheKey };
+        if (payload.available) cache = { at: Date.now(), data: payload, key: cacheKey };
         return payload;
       }
     }
@@ -56,6 +59,5 @@ export async function getExpoUsagePage(filters, { force = false } = {}) {
     /* resposta controlada abaixo */
   }
 
-  cache = { at: Date.now(), data: FALLBACK, key: cacheKey };
   return FALLBACK;
 }

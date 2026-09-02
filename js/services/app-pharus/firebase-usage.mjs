@@ -30,13 +30,12 @@ export async function getFirebaseUsagePage(filters, { force = false } = {}) {
     if ((response.headers.get("content-type") || "").includes("application/json")) {
       const payload = await response.json().catch(() => null);
       if (payload && typeof payload === "object") {
-        cache = { at: Date.now(), data: payload, key: cacheKey };
+        if (payload.available) cache = { at: Date.now(), data: payload, key: cacheKey };
         return payload;
       }
     }
   } catch {
     /* fallback independente abaixo */
   }
-  cache = { at: Date.now(), data: FALLBACK, key: cacheKey };
   return FALLBACK;
 }

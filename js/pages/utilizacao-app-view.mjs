@@ -2,6 +2,15 @@ import { chartCard, chartGrid } from "../components/chart-card.mjs";
 import { hBars, usageLineChart } from "../components/charts.mjs";
 import { kpiCard, kpiRow } from "../components/kpi-card.mjs";
 import { appUsageConstructionNotice, sectionBlock } from "../components/page-kit.mjs";
+import {
+  sectionEmpty,
+  sectionError,
+  sectionLoading,
+  sectionUnavailable,
+  skeletonChart,
+  skeletonKpiGrid,
+  skeletonTable,
+} from "../components/skeleton.mjs";
 import { formatKpiValue } from "../lib/kpi-value.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
 import { formatNumber } from "../utils/format.mjs";
@@ -26,12 +35,25 @@ const PHARUS_KPI_ORDER = [
   ["journey", "Com jornada iniciada"],
 ];
 
-function discreteEmpty(text) {
-  return `<p class="usage-quiet-empty" role="status">${escapeHtml(text)}</p>`;
-}
+const KPI_TOOLTIPS = {
+  active7DayUsers: "Quantidade de usuários distintos que utilizaram a plataforma nos últimos 7 dias.",
+  active1DayUsers: "Quantidade de usuários distintos que utilizaram a plataforma no período mais recente de 1 dia.",
+  averageSessionDuration: "Tempo médio de duração de cada sessão registrada pelo Google Analytics.",
+  active28DayUsers: "Quantidade de usuários distintos que utilizaram a plataforma nos últimos 28 dias.",
+  sessions: "Quantidade de sessões registradas no período consultado.",
+  newUsers: "Usuários que tiveram o primeiro engajamento no período.",
+  sessionsPerUser: "Em média, quantas sessões cada usuário realizou no período.",
+  averageEngagement: "Tempo médio de engajamento por usuário ativo no período.",
+};
 
 function sourceChip(label, status) {
-  const text = status === "connected" ? "Conectado" : status === "loading" ? "Carregando" : "Indisponível";
+  const labels = {
+    connected: "conectado",
+    loading: "carregando",
+    error: "erro",
+    idle: "aguardando",
+  };
+  const text = labels[status] || "erro";
   return `<span class="usage-source-chip is-${escapeHtml(status)}"><i aria-hidden="true"></i>${escapeHtml(label)} · ${text}</span>`;
 }
 
@@ -39,15 +61,45 @@ function sourcesStatus(data) {
   const sources = data.sources || {};
   return `<div class="usage-source-status" role="status">
     <strong>Fontes</strong>
-    ${sourceChip("Google Analytics", sources.analytics || "unavailable")}
-    ${sourceChip("Expo / EAS", sources.expo || "unavailable")}
-    ${sourceChip("App Pharus", sources.pharus || "unavailable")}
+    ${sourceChip("Google Analytics", sources.analytics || "error")}
+    ${sourceChip("Expo / EAS", sources.expo || "error")}
+    ${sourceChip("App Pharus", sources.pharus || "error")}
   </div>`;
 }
 
-function ga4Kpi(analytics, key, label, description, kind = "number") {
-  const value = analytics?.summary?.[key];
-  const supported = Boolean(analytics?.availability?.metrics?.[key]) && value != null;
+function analyticsError() {
+  return sectionError({
+    title: "Não foi possível carregar as métricas de utilização.",
+    retrySource: "analytics",
+  });
+}
+
+function expoLoading() {
+  return `${sectionLoading({
+    title: "Carregando dados do Expo/EAS…",
+    text: "Essa fonte pode levar alguns segundos.",
+  })}${skeletonTable({ rows: 4, columns: 4 })}`;
+}
+
+function expoError() {
+  return sectionError({
+    title: "Não foi possível carregar os dados técnicos do Expo/EAS.",
+    retrySource: "expo",
+  });
+}
+
+function pharusError() {
+  return sectionError({
+    title: "Não foi possível carregar o contexto da base Pharus.",
+    retrySource: "pharus",
+  });
+}
+
+function ga4Kpi(analytics, key, label, description, { kind = "number", tooltip, source } = {}) {
+  const value = source === "engagement" ? analytics?.engagement?.[key] : analytics?.summary?.[key];
+  const supported = source === "engagement"
+    ? value != null
+    : Boolean(analytics?.availability?.metrics?.[key]) && value != null;
   if (!supported) return null;
   return {
     key,
@@ -56,35 +108,46 @@ function ga4Kpi(analytics, key, label, description, kind = "number") {
     digits: kind === "decimal" ? 2 : undefined,
     status: "ok",
     value,
-    note: "Google Analytics",
+    tooltip: tooltip || KPI_TOOLTIPS[key] || description,
     description,
   };
 }
 
-function usageKpiGrid(rows) {
+function infoButton(text) {
+  const label = text || "";
+  return `<button type="button" class="app-usage-info" aria-label="${escapeHtml(label)}" data-ui-tooltip="${escapeHtml(label)}">i</button>`;
+}
+
+function usageKpiGrid(rows, { featured = false } = {}) {
   const visible = (rows || []).filter(Boolean);
-  if (!visible.length) return discreteEmpty("Nenhum indicador disponível nesta fonte.");
-  return `<div class="app-usage-kpi-grid">${visible.map((item) => `
-    <article class="app-usage-kpi">
+  if (!visible.length) return "";
+  const gridClass = featured ? "app-usage-kpi-grid is-primary" : "app-usage-kpi-grid is-secondary";
+  return `<div class="${gridClass}">${visible.map((item) => `
+    <article class="app-usage-kpi${featured ? " is-featured" : ""}">
       <div class="app-usage-kpi-head">
         <span>${escapeHtml(item.label)}</span>
-        <span class="app-usage-info" tabindex="0" role="img" aria-label="${escapeHtml(item.note || item.description || "")}" title="${escapeHtml(item.note || item.description || "")}">i</span>
+        ${infoButton(item.tooltip || item.description || "")}
       </div>
       <div class="app-usage-kpi-value">${formatKpiValue(item)}</div>
-      <div class="app-usage-kpi-description">${escapeHtml(item.description || "Google Analytics")}</div>
+      <div class="app-usage-kpi-description">${escapeHtml(item.description || "")}</div>
     </article>`).join("")}</div>`;
 }
 
 function ga4HeadlineKpis(analytics) {
   const primary = [
-    ga4Kpi(analytics, "active1DayUsers", "Usuários ativos · 1 dia", "Usuários distintos no último dia do período"),
-    ga4Kpi(analytics, "active7DayUsers", "Usuários ativos · 7 dias", "Usuários distintos em 7 dias"),
-    ga4Kpi(analytics, "active28DayUsers", "Usuários ativos · 28 dias", "Usuários distintos em 28 dias"),
-    ga4Kpi(analytics, "sessions", "Sessões", "Sessões no período"),
-    ga4Kpi(analytics, "newUsers", "Novos usuários", "Novos usuários no período"),
+    ga4Kpi(analytics, "active7DayUsers", "Usuários ativos · 7 dias", "Usuários distintos nos últimos 7 dias"),
+    ga4Kpi(analytics, "active1DayUsers", "Usuários ativos · 1 dia", "Usuários distintos no último dia"),
+    ga4Kpi(analytics, "averageSessionDuration", "Duração média da sessão", "Tempo médio de cada sessão", {
+      kind: "duration",
+      source: "engagement",
+      tooltip: KPI_TOOLTIPS.averageSessionDuration,
+    }),
   ];
   const secondary = [
-    ga4Kpi(analytics, "sessionsPerUser", "Sessões por usuário", "Média de sessões por usuário ativo", "decimal"),
+    ga4Kpi(analytics, "active28DayUsers", "Usuários ativos · 28 dias", "Usuários distintos em 28 dias"),
+    ga4Kpi(analytics, "sessions", "Sessões", "Sessões no período"),
+    ga4Kpi(analytics, "newUsers", "Novos usuários", "Primeiro engajamento no período"),
+    ga4Kpi(analytics, "sessionsPerUser", "Sessões por usuário", "Média de sessões por usuário", { kind: "decimal" }),
     analytics?.engagement?.averageEngagementPerActiveUser != null
       ? {
           key: "average_engagement_web",
@@ -92,69 +155,93 @@ function ga4HeadlineKpis(analytics) {
           kind: "duration",
           status: "ok",
           value: analytics.engagement.averageEngagementPerActiveUser,
-          note: "Google Analytics",
+          tooltip: KPI_TOOLTIPS.averageEngagement,
           description: "Por usuário ativo",
         }
       : null,
-  ].filter(Boolean);
-  return `${usageKpiGrid(primary)}${secondary.length ? `<div class="app-usage-kpi-followup">${usageKpiGrid(secondary)}</div>` : ""}`;
+  ];
+  const primaryHtml = usageKpiGrid(primary, { featured: true });
+  const secondaryHtml = usageKpiGrid(secondary);
+  if (!primaryHtml && !secondaryHtml) return sectionUnavailable();
+  return `${primaryHtml}${secondaryHtml ? `<div class="app-usage-kpi-followup">${secondaryHtml}</div>` : ""}`;
 }
 
 function ga4EngagementKpis(analytics) {
   const engagement = analytics?.engagement || {};
   const rows = [];
-  if (analytics?.summary?.sessions != null) {
-    rows.push({ key: "sessions", label: "Sessões", kind: "number", status: "ok", value: analytics.summary.sessions, description: "No período consultado", note: "sessions" });
-  }
   if (engagement.sessionsPerUser != null) {
-    rows.push({ key: "sessions_per_user", label: "Sessões por usuário", kind: "decimal", digits: 2, status: "ok", value: engagement.sessionsPerUser, description: "Métrica oficial da Data API", note: "sessionsPerUser" });
+    rows.push({
+      key: "sessions_per_user",
+      label: "Sessões por usuário",
+      kind: "decimal",
+      digits: 2,
+      status: "ok",
+      value: engagement.sessionsPerUser,
+      description: "Média no período",
+      tooltip: KPI_TOOLTIPS.sessionsPerUser,
+    });
   }
   if (engagement.averageEngagementPerActiveUser != null) {
-    rows.push({ key: "average_engagement", label: "Tempo médio de engajamento", kind: "duration", status: "ok", value: engagement.averageEngagementPerActiveUser, description: "Por usuário ativo", note: engagement.averageEngagementPerActiveUserSource || "userEngagementDuration / activeUsers" });
+    rows.push({
+      key: "average_engagement",
+      label: "Tempo médio de engajamento",
+      kind: "duration",
+      status: "ok",
+      value: engagement.averageEngagementPerActiveUser,
+      description: "Por usuário ativo",
+      tooltip: KPI_TOOLTIPS.averageEngagement,
+    });
   }
   if (engagement.averageSessionDuration != null) {
-    rows.push({ key: "average_session_duration", label: "Duração média da sessão", kind: "duration", status: "ok", value: engagement.averageSessionDuration, description: "Métrica oficial da Data API", note: "averageSessionDuration" });
+    rows.push({
+      key: "average_session_duration",
+      label: "Duração média da sessão",
+      kind: "duration",
+      status: "ok",
+      value: engagement.averageSessionDuration,
+      description: "Por sessão",
+      tooltip: KPI_TOOLTIPS.averageSessionDuration,
+    });
   }
-  return usageKpiGrid(rows);
-}
-
-function platformSummary(analytics) {
-  const kind = analytics?.classification?.kind;
-  if (!analytics?.available) return discreteEmpty("Plataforma ainda não confirmada.");
-  if (kind === "web") {
-    return `<div class="usage-platform-pill"><span>Plataforma detectada</span><strong>Web</strong></div>`;
-  }
-  const rows = (analytics.platformSplit || []).filter((row) => row.count != null);
-  if (!rows.length) return discreteEmpty("Nenhuma plataforma retornada.");
-  return hBars(rows, { compact: true, expandable: false, preserveOrder: true });
+  return usageKpiGrid(rows) || sectionUnavailable();
 }
 
 function eventLabel(name) {
   return EVENT_LABELS[name] ? `${EVENT_LABELS[name]} · ${name}` : name;
 }
 
-function expoAvailableKpis(expo) {
-  const rows = (expo.usageKpis || []).filter((item) => item.status === "ok" && item.value != null);
-  if (!rows.length) return "";
-  return kpiRow(rows.map((item) => kpiCard(item.label, formatKpiValue(item), "Expo / EAS", { featured: true, tooltip: item.note })), "kpi-row-secondary kpi-row-3");
+function analyticsSection(analytics, successBody, { kpis = false, chart = false } = {}) {
+  if (analytics?.loading) {
+    if (kpis) return `${skeletonKpiGrid({ count: 3, featured: true })}${skeletonKpiGrid({ count: 4 })}`;
+    if (chart) return skeletonChart({ height: 320 });
+    return skeletonKpiGrid({ count: 3 });
+  }
+  if (!analytics?.available) return analyticsError();
+  return successBody();
 }
 
 function contextKpis(pharus) {
-  if (!pharus?.available) return discreteEmpty("Contexto da base Pharus indisponível.");
+  if (pharus?.loading) {
+    return kpiRow(
+      PHARUS_KPI_ORDER.map(([key, label]) => kpiCard(label, "", "", { compact: true, loading: true, key })),
+      "kpi-row-secondary",
+    );
+  }
+  if (!pharus?.available) return pharusError();
   const byKey = Object.fromEntries((pharus.kpis || []).map((item) => [item.key, item]));
   const rows = PHARUS_KPI_ORDER.map(([key, label]) => {
     const item = byKey[key];
     if (!item || item.value == null) return null;
     return kpiCard(label, formatNumber(item.value), "", { compact: true });
   }).filter(Boolean);
-  if (!rows.length) return discreteEmpty("Contexto da base Pharus indisponível.");
+  if (!rows.length) return sectionEmpty("Sem dados no período");
   return kpiRow(rows, "kpi-row-secondary");
 }
 
-function expoSectionBody(expo, { kpis = "", extra = "" } = {}) {
-  if (expo?.loading) return discreteEmpty("Carregando dados técnicos do Expo/EAS…");
-  if (!expo?.available) return discreteEmpty("Dados do Expo/EAS indisponíveis no momento.");
-  return `${kpis}${extra}`;
+function expoSectionBody(expo, extra = "") {
+  if (expo?.loading) return expoLoading();
+  if (!expo?.available) return expoError();
+  return extra;
 }
 
 export function renderUtilizacaoApp(data = {}) {
@@ -163,7 +250,6 @@ export function renderUtilizacaoApp(data = {}) {
   const pharus = data.pharus || data.context || {};
   const ga4Series = analytics.available && analytics.usageSeries?.length;
   const ga4Events = analytics.available && analytics.events?.length;
-  const expoSeries = expo.available && expo.usageSeriesStatus === "available" && expo.usageSeries?.length;
   const expoVersions = expo.available && expo.versionRows?.length;
   const observeAvailable = Boolean(expo.available && expo.observe?.configured);
   const periodNote = analytics.period?.startDate
@@ -173,16 +259,79 @@ export function renderUtilizacaoApp(data = {}) {
   return `
     ${appUsageConstructionNotice()}
     ${sourcesStatus(data)}
-    ${sectionBlock({ id: "sec-web-usage", title: "1. Uso da plataforma Web", lead: periodNote, body: analytics.available ? ga4HeadlineKpis(analytics) : discreteEmpty("Google Analytics indisponível no momento.") })}
-    ${sectionBlock({ id: "sec-ga4-evolution", title: "2. Evolução de uso", body: chartGrid([chartCard({ title: "Usuários ativos por dia", subtitle: "Série diária do Google Analytics, sem preencher datas ausentes.", body: ga4Series ? usageLineChart(analytics.usageSeries, { maxItems: 90, unit: "activeUsers" }) : discreteEmpty("Série diária indisponível."), footer: ga4Series ? "Google Analytics" : "" })], 1) })}
-    ${sectionBlock({ id: "sec-ga4-engagement", title: "3. Engajamento", body: analytics.available ? ga4EngagementKpis(analytics) : discreteEmpty("Engajamento indisponível.") })}
-    ${sectionBlock({ id: "sec-ga4-events", title: "4. Principais eventos", body: ga4Events ? hBars((analytics.events || []).map((row) => ({ label: eventLabel(row.name), count: row.count, percent: row.percent, name: row.name })), { compact: true, preserveOrder: true, initialLimit: 8 }) : discreteEmpty("Nenhum evento retornado.") })}
-    ${sectionBlock({ id: "sec-ga4-platform", title: "Plataforma", body: platformSummary(analytics) })}
-    ${sectionBlock({ id: "sec-expo-usage", title: "5. Uso do aplicativo", lead: "Somente telemetria Expo/EAS Insights. Não é misturada com o Google Analytics Web.", body: expoSectionBody(expo, { kpis: expoAvailableKpis(expo), extra: expoSeries ? chartGrid([chartCard({ title: "Usuários únicos por dia", subtitle: "EAS channel:insights", body: usageLineChart(expo.usageSeries, { maxItems: 90 }), footer: "Expo / EAS" })], 1) : (expo.available ? discreteEmpty("Série diária de usuários únicos não retornada pelo EAS Insights.") : "") }) })}
-    ${sectionBlock({ id: "sec-expo-versions", title: "6. Versões do App", body: expoSectionBody(expo, { extra: expoVersions ? hBars((expo.versionRows || []).map((row) => ({ label: `${row.version} · ${row.platform}`, count: row.events, percent: row.percent })).sort((a, b) => b.count - a.count), { compact: true, preserveOrder: true, initialLimit: 8 }) : discreteEmpty("Nenhuma versão de app retornada pelo Expo/EAS.") }) })}
-    ${sectionBlock({ id: "sec-expo-updates", title: "7. Updates e runtime", body: expoSectionBody(expo, { extra: `<h4 class="subsection-title">Por channel e runtime</h4><div id="expo-channel-insights-table-host"><p class="placeholder-note">Carregando…</p></div><h4 class="subsection-title">Insights por grupo de update</h4><div id="expo-update-insights-table-host"><p class="placeholder-note">Carregando…</p></div><h4 class="subsection-title">Runtime versions e deployments</h4><div id="expo-updates-table-host"><p class="placeholder-note">Carregando…</p></div>` }) })}
-    ${sectionBlock({ id: "sec-expo-builds", title: "8. Builds e deployments", body: expoSectionBody(expo, { extra: `<div id="expo-builds-table-host"><p class="placeholder-note">Carregando…</p></div>` }) })}
-    ${sectionBlock({ id: "sec-expo-health", title: "9. Saúde e performance", lead: "EAS Observe, quando a fonte retornar eventos.", body: expoSectionBody(expo, { extra: observeAvailable ? `<div id="expo-performance-table-host"><p class="placeholder-note">Carregando…</p></div>` : discreteEmpty("Observe não retornou medições neste momento.") }) })}
-    ${sectionBlock({ id: "sec-app-context", title: "10. Contexto da base Pharus", lead: "Estes indicadores representam a base de clientes e não usuários únicos do Google Analytics ou Expo.", body: contextKpis(pharus) })}
+    ${sectionBlock({
+      id: "sec-web-usage",
+      title: "1. Utilização da plataforma",
+      lead: periodNote,
+      body: analyticsSection(analytics, () => ga4HeadlineKpis(analytics), { kpis: true }),
+    })}
+    ${sectionBlock({
+      id: "sec-ga4-evolution",
+      title: "2. Evolução de uso",
+      body: chartGrid([chartCard({
+        title: "Usuários ativos por dia",
+        subtitle: "Evolução diária de usuários ativos no período selecionado.",
+        body: analyticsSection(
+          analytics,
+          () => (ga4Series ? usageLineChart(analytics.usageSeries, { maxItems: 90, unit: "activeUsers" }) : sectionEmpty("Sem dados no período")),
+          { chart: true },
+        ),
+        footer: ga4Series ? "Fonte: Google Analytics" : "",
+      })], 1),
+    })}
+    ${sectionBlock({
+      id: "sec-ga4-engagement",
+      title: "3. Engajamento",
+      body: analyticsSection(analytics, () => ga4EngagementKpis(analytics)),
+    })}
+    ${sectionBlock({
+      id: "sec-ga4-events",
+      title: "4. Principais eventos",
+      body: analyticsSection(
+        analytics,
+        () => (ga4Events
+          ? hBars((analytics.events || []).map((row) => ({ label: eventLabel(row.name), count: row.count, percent: row.percent, name: row.name })), { compact: true, preserveOrder: true, initialLimit: 8 })
+          : sectionEmpty("Sem dados no período")),
+        { chart: true },
+      ),
+    })}
+    ${sectionBlock({
+      id: "sec-expo-versions",
+      title: "5. Versões do App",
+      lead: "Informação técnica do Expo/EAS, não um indicador de usuários da plataforma.",
+      body: expoSectionBody(
+        expo,
+        expoVersions
+          ? hBars((expo.versionRows || []).map((row) => ({ label: `${row.version} · ${row.platform}`, count: row.events, percent: row.percent })).sort((a, b) => b.count - a.count), { compact: true, preserveOrder: true, initialLimit: 8 })
+          : sectionEmpty("Sem dados no período"),
+      ),
+    })}
+    ${sectionBlock({
+      id: "sec-expo-updates",
+      title: "6. Updates e runtime",
+      body: expoSectionBody(expo, `<h4 class="subsection-title">Por channel e runtime</h4><div id="expo-channel-insights-table-host"></div><h4 class="subsection-title">Insights por grupo de update</h4><div id="expo-update-insights-table-host"></div><h4 class="subsection-title">Runtime versions e deployments</h4><div id="expo-updates-table-host"></div>`),
+    })}
+    ${sectionBlock({
+      id: "sec-expo-builds",
+      title: "7. Builds e deployments",
+      body: expoSectionBody(expo, `<div id="expo-builds-table-host"></div>`),
+    })}
+    ${sectionBlock({
+      id: "sec-expo-health",
+      title: "8. Saúde e performance",
+      lead: "Medições técnicas do EAS Observe, quando a fonte retornar eventos.",
+      body: expoSectionBody(
+        expo,
+        observeAvailable
+          ? `<div id="expo-performance-table-host"></div>`
+          : sectionUnavailable(),
+      ),
+    })}
+    ${sectionBlock({
+      id: "sec-app-context",
+      title: "9. Contexto da base Pharus",
+      lead: "Estes indicadores representam a base de clientes e não usuários únicos do Google Analytics ou Expo.",
+      body: contextKpis(pharus),
+    })}
   `;
 }

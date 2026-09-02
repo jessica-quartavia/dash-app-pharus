@@ -79,37 +79,47 @@ test("Utilização do App comunica fontes GA4, Expo e Pharus", async () => {
   const notice = appUsageConstructionNotice();
   const source = appUsageSourceBanner();
   assert.match(notice, /🔧 Em construção/u);
-  assert.match(notice, /Google Analytics \+ Expo \/ EAS \+ App Pharus/);
-  assert.match(notice, /plataforma web/);
-  assert.match(notice, /Expo\/EAS/);
-  assert.match(notice, /Firebase Analytics serão incorporados futuramente/);
+  assert.match(notice, /Fonte dos dados: Google Analytics \+ Expo \/ EAS \+ App Pharus/);
+  assert.match(notice, /O Google Analytics fornece métricas de utilização e comportamento da plataforma/);
+  assert.match(notice, /Expo\/EAS complementa com informações técnicas/);
+  assert.match(notice, /Os dados do Expo\/EAS podem levar alguns segundos para carregar/);
+  assert.doesNotMatch(notice, /Firebase Analytics serão incorporados futuramente/);
+  assert.doesNotMatch(notice, /plataforma web|Google Analytics Web|Property Web/i);
   assert.doesNotMatch(notice, /PERMISSION_DENIED|erro técnico|falha ao consultar/i);
   assert.match(source, /Fonte atual dos dados: Expo \/ EAS \+ App Pharus/);
 
-  const [pageSource, viewSource, serviceSource, chartSource, componentStyles] = await Promise.all([
+  const [pageSource, viewSource, serviceSource, chartSource, tooltipSource, componentStyles] = await Promise.all([
     readFile(new URL("../../js/pages/utilizacao-app.js", import.meta.url), "utf8"),
     readFile(new URL("../../js/pages/utilizacao-app-view.mjs", import.meta.url), "utf8"),
     readFile(new URL("../../js/services/app-pharus/app-usage.mjs", import.meta.url), "utf8"),
     readFile(new URL("../../js/components/charts.mjs", import.meta.url), "utf8"),
+    readFile(new URL("../../js/components/floating-tooltip.mjs", import.meta.url), "utf8"),
     readFile(new URL("../../css/components.css", import.meta.url), "utf8"),
   ]);
   assert.match(serviceSource, /getFirebaseUsagePage/);
   assert.match(serviceSource, /onPartial/);
   assert.match(serviceSource, /loadUsageSources/);
   assert.match(pageSource, /renderUtilizacaoApp/);
-  for (const section of ["1. Uso da plataforma Web", "2. Evolução de uso", "3. Engajamento", "4. Principais eventos", "5. Uso do aplicativo", "6. Versões do App", "7. Updates e runtime", "8. Builds e deployments", "9. Saúde e performance", "10. Contexto da base Pharus"]) {
+  assert.match(pageSource, /bindFloatingTooltips/);
+  for (const section of ["1. Utilização da plataforma", "2. Evolução de uso", "3. Engajamento", "4. Principais eventos", "5. Versões do App", "6. Updates e runtime", "7. Builds e deployments", "8. Saúde e performance", "9. Contexto da base Pharus"]) {
     assert.match(viewSource, new RegExp(section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
+  assert.doesNotMatch(viewSource, /5\. Uso do aplicativo|Usuários únicos por dia|Usuários únicos \(update embarcado\)|sec-expo-usage/);
+  assert.doesNotMatch(viewSource, /Uso da plataforma Web|Google Analytics Web|Plataforma detectada/);
   assert.match(viewSource, /não usuários únicos do Google Analytics ou Expo/i);
   assert.match(viewSource, /usageLineChart/);
   assert.match(viewSource, /chartGrid\([^]*, 1\)/);
+  assert.match(viewSource, /data-ui-tooltip/);
   assert.doesNotMatch(pageSource, /appUsageSourceBanner/);
-  assert.match(chartSource, /chart\.addEventListener\("scroll", hide/);
-  assert.match(componentStyles, /\.app-usage-kpi-grid[^]*repeat\(5/);
+  assert.match(chartSource, /bindFloatingTooltips/);
+  assert.match(tooltipSource, /window\.addEventListener\("scroll", hideFloatingTooltip, true\)/);
+  assert.match(componentStyles, /\.app-usage-kpi-grid\.is-primary[^]*repeat\(3/);
   assert.match(componentStyles, /@media \(max-width: 1100px\)[^]*\.app-usage-kpi-grid[^]*repeat\(2/);
   assert.match(componentStyles, /@media \(max-width: 720px\)[^]*\.app-usage-kpi-grid[^]*grid-template-columns: 1fr/);
   assert.match(componentStyles, /\.chart-grid-full[^]*grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(componentStyles, /height: clamp\(320px, 31vw, 370px\)/);
+  assert.match(componentStyles.match(/\.usage-line-chart \{[^}]+\}/)?.[0] || "", /overflow:\s*visible/);
+  assert.match(componentStyles, /\.ui-floating-tooltip \{/);
   assert.doesNotMatch(componentStyles.match(/\.usage-line-chart \{[^}]+\}/)?.[0] || "", /background:\s*(white|black|#fff|#000)/i);
 });
 

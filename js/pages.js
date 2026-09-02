@@ -116,7 +116,7 @@ export const PAGES = [
     navLabel: "Utilização do App",
     title: "Utilização da Plataforma",
     eyebrow: "App Pharus",
-    description: "Uso da plataforma web via Google Analytics, informações técnicas do Expo/EAS e contexto da base Pharus.",
+    description: "Utilização da plataforma via Google Analytics, informações técnicas do Expo/EAS e contexto da base Pharus.",
     implemented: true,
     badge: { label: "🔧 Em construção", tone: "warning" },
   },

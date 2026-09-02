@@ -2,6 +2,7 @@ import { escapeHtml } from "../utils/escape.mjs";
 import { sortDistributionUnknownLast } from "../utils/sort.mjs";
 import { formatCurrencyCompact, formatCurrencyExact, formatNumber, formatPercent } from "../utils/format.mjs";
 import { EXPANDABLE_CHART_LIMIT, renderExpandableChartList } from "./expandable-chart-list.mjs";
+import { bindFloatingTooltips } from "./floating-tooltip.mjs";
 
 const STATUS_COLORS = {
   Ativo: "#0a0a0a",
@@ -156,55 +157,32 @@ export function usageLineChart(series, { valueKey = "count", maxItems = 90, unit
     if (index !== 0 && index !== points.length - 1 && index % labelStep !== 0) return "";
     return `<text class="usage-line-x-label" x="${point.x}" y="${height - 13}" text-anchor="middle">${escapeHtml(dayShortLabel(point.date || point.label).replace(/^0/, ""))}</text>`;
   }).join("");
-  const pointMarkup = points.map((point, index) => {
+  const pointMarkup = points.map((point) => {
     const date = dayLongLabel(point.date || point.label);
     const unitLabel = unit === "activeUsers"
       ? (point.value === 1 ? "usuário ativo" : "usuários ativos")
       : (point.value === 1 ? "usuário único" : "usuários únicos");
     const countLabel = `${formatNumber(point.value)} ${unitLabel}`;
     const tooltip = `${date}\n${countLabel}`;
-    const latest = index === points.length - 1;
-    return `<g class="usage-line-point${latest ? " is-latest" : ""}" tabindex="0" role="img" aria-label="${escapeHtml(`${date}, ${countLabel}`)}" data-line-point data-x="${point.x}" data-y="${point.y}" data-tooltip="${escapeHtml(tooltip)}">
-      ${latest ? `<circle class="usage-line-point-ring" cx="${point.x}" cy="${point.y}" r="8"></circle>` : ""}
-      <circle class="usage-line-point-dot" cx="${point.x}" cy="${point.y}" r="${latest ? 4.5 : 3.5}"></circle>
+    return `<g class="usage-line-point" tabindex="0" role="img" aria-label="${escapeHtml(`${date}, ${countLabel}`)}" data-line-point data-tooltip="${escapeHtml(tooltip)}">
+      <circle class="usage-line-point-hit" cx="${point.x}" cy="${point.y}" r="12"></circle>
+      <circle class="usage-line-point-dot" cx="${point.x}" cy="${point.y}" r="3.25"></circle>
     </g>`;
   }).join("");
 
+  const chartLabel = unit === "activeUsers" ? "Evolução diária de usuários ativos" : "Evolução diária de usuários únicos";
   return `<div class="usage-line-chart" data-usage-line-chart>
-    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Evolução diária de usuários únicos">
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${escapeHtml(chartLabel)}">
       ${grid}
       <path class="usage-line-path" d="${path}"></path>
       ${pointMarkup}
       ${xLabels}
     </svg>
-    <div class="usage-line-tooltip" role="status" aria-live="polite" hidden></div>
   </div>`;
 }
 
 export function bindUsageLineChartTooltips(root = document) {
-  root.querySelectorAll("[data-usage-line-chart]").forEach((chart) => {
-    const tooltip = chart.querySelector(".usage-line-tooltip");
-    if (!tooltip || chart.dataset.tooltipBound === "true") return;
-    chart.dataset.tooltipBound = "true";
-    const show = (point) => {
-      tooltip.textContent = point.dataset.tooltip || "";
-      tooltip.hidden = false;
-      const chartRect = chart.getBoundingClientRect();
-      const pointRect = point.getBoundingClientRect();
-      const rawLeft = pointRect.left + pointRect.width / 2 - chartRect.left;
-      const half = tooltip.offsetWidth / 2;
-      tooltip.style.left = `${Math.min(Math.max(rawLeft, half + 8), chartRect.width - half - 8)}px`;
-      tooltip.style.top = `${pointRect.top + pointRect.height / 2 - chartRect.top}px`;
-    };
-    const hide = () => { tooltip.hidden = true; };
-    chart.querySelectorAll("[data-line-point]").forEach((point) => {
-      point.addEventListener("mouseenter", () => show(point));
-      point.addEventListener("mouseleave", hide);
-      point.addEventListener("focus", () => show(point));
-      point.addEventListener("blur", hide);
-    });
-    chart.addEventListener("scroll", hide, { passive: true });
-  });
+  bindFloatingTooltips(root);
 }
 
 export function dailyColumns(series, { valueKey = "count", titleSuffix = "usuários únicos", maxItems = 90 } = {}) {

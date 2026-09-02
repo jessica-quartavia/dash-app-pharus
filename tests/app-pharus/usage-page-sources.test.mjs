@@ -2,10 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   ANALYTICS_FALLBACK,
+  ANALYTICS_LOADING,
   EXPO_FALLBACK,
+  EXPO_LOADING,
   PHARUS_FALLBACK,
   loadUsageSources,
   mergeUsageSources,
+  retryUsageSource,
   withTimeout,
 } from "../../js/services/app-pharus/usage-sources.mjs";
 import { renderUtilizacaoApp } from "../../js/pages/utilizacao-app-view.mjs";
@@ -86,7 +89,14 @@ test("fontes independentes: GA4 OK + Expo OK", () => {
   assert.match(html, />19</);
   assert.match(html, /13 min/);
   assert.match(html, /10 min 57 s/);
-  assert.match(html, /Usuários únicos por dia/);
+  assert.match(html, /is-featured/);
+  assert.match(html, /Quantidade de usuários distintos que utilizaram a plataforma nos últimos 7 dias/);
+  assert.match(html, /5\. Versões do App/);
+  assert.doesNotMatch(html, /5\. Uso do aplicativo/);
+  assert.doesNotMatch(html, /Usuários únicos por dia/);
+  assert.doesNotMatch(html, /Usuários únicos \(update embarcado\)/);
+  assert.doesNotMatch(html, /Usuários únicos \(OTA\)/);
+  assert.doesNotMatch(html, /Instalações com falha/);
   assert.doesNotMatch(html, /Usuários únicos · 7 dias/);
   assert.doesNotMatch(html, /Integração Expo temporariamente indisponível/);
 });
@@ -94,38 +104,41 @@ test("fontes independentes: GA4 OK + Expo OK", () => {
 test("fontes independentes: GA4 OK + Expo ERROR", () => {
   const page = mergeUsageSources({ analytics: analyticsOk, expo: EXPO_FALLBACK, pharus: pharusOk });
   assert.equal(page.sources.analytics, "connected");
-  assert.equal(page.sources.expo, "unavailable");
+  assert.equal(page.sources.expo, "error");
   const html = renderUtilizacaoApp(page);
-  assert.match(html, /1\. Uso da plataforma Web/);
+  assert.match(html, /1\. Utilização da plataforma/);
   assert.match(html, /100/);
   assert.match(html, /415/);
-  assert.match(html, /Google Analytics · Conectado/);
-  assert.match(html, /Expo \/ EAS · Indisponível/);
-  assert.match(html, /Dados do Expo\/EAS indisponíveis no momento/);
+  assert.match(html, /Google Analytics · conectado/);
+  assert.match(html, /Expo \/ EAS · erro/);
+  assert.match(html, /Não foi possível carregar os dados técnicos do Expo\/EAS/);
+  assert.match(html, /data-retry-source="expo"/);
   assert.doesNotMatch(html, /Não foi possível carregar esta página/);
   assert.doesNotMatch(html, /Usuários únicos 7 dias/);
 });
 
 test("fontes independentes: GA4 ERROR + Expo OK", () => {
   const page = mergeUsageSources({ analytics: ANALYTICS_FALLBACK, expo: expoOk, pharus: pharusOk });
-  assert.equal(page.sources.analytics, "unavailable");
+  assert.equal(page.sources.analytics, "error");
   assert.equal(page.sources.expo, "connected");
   const html = renderUtilizacaoApp(page);
-  assert.match(html, /Google Analytics indisponível no momento/);
-  assert.match(html, /Usuários únicos por dia/);
+  assert.match(html, /Não foi possível carregar as métricas de utilização/);
+  assert.match(html, /data-retry-source="analytics"/);
+  assert.match(html, /5\. Versões do App/);
   assert.match(html, /1\.2\.1/);
+  assert.doesNotMatch(html, /Usuários únicos por dia/);
   assert.doesNotMatch(html, /Usuários ativos · 1 dia/);
 });
 
 test("fontes independentes: ambas indisponíveis", () => {
   const page = mergeUsageSources({ analytics: ANALYTICS_FALLBACK, expo: EXPO_FALLBACK, pharus: PHARUS_FALLBACK });
-  assert.equal(page.sources.analytics, "unavailable");
-  assert.equal(page.sources.expo, "unavailable");
-  assert.equal(page.sources.pharus, "unavailable");
+  assert.equal(page.sources.analytics, "error");
+  assert.equal(page.sources.expo, "error");
+  assert.equal(page.sources.pharus, "error");
   const html = renderUtilizacaoApp(page);
-  assert.match(html, /Google Analytics indisponível no momento/);
-  assert.match(html, /Dados do Expo\/EAS indisponíveis no momento/);
-  assert.match(html, /Contexto da base Pharus indisponível/);
+  assert.match(html, /Não foi possível carregar as métricas de utilização/);
+  assert.match(html, /Não foi possível carregar os dados técnicos do Expo\/EAS/);
+  assert.match(html, /Não foi possível carregar o contexto da base Pharus/);
   assert.doesNotMatch(html, /Não disponível pela integração atual do Expo/);
 });
 
@@ -140,9 +153,13 @@ test("período e source status aparecem no HTML", () => {
   const html = renderUtilizacaoApp(mergeUsageSources({ analytics: analyticsOk, expo: expoOk, pharus: pharusOk }));
   assert.match(html, /O filtro de período é aplicado ao Google Analytics/);
   assert.match(html, /usage-source-status/);
-  assert.match(html, /Plataforma detectada/);
-  assert.match(html, />Web</);
   assert.match(html, /page_view/);
+  assert.match(html, /data-ui-tooltip/);
+  assert.doesNotMatch(html, /Plataforma detectada|Uso da plataforma Web|Google Analytics Web/);
+  const order7 = html.indexOf("Usuários ativos · 7 dias");
+  const order1 = html.indexOf("Usuários ativos · 1 dia");
+  const orderDuration = html.indexOf("Duração média da sessão");
+  assert.ok(order7 >= 0 && order7 < order1 && order1 < orderDuration);
 });
 
 test("loadUsageSources não deixa Expo lento esconder o GA4", async () => {
@@ -161,11 +178,12 @@ test("loadUsageSources não deixa Expo lento esconder o GA4", async () => {
   const html = renderUtilizacaoApp(first);
   assert.match(html, /Usuários ativos · 1 dia/);
   assert.match(html, />19</);
-  assert.match(html, /Carregando dados técnicos do Expo\/EAS/);
+  assert.match(html, /Carregando dados do Expo\/EAS/);
+  assert.match(html, /Essa fonte pode levar alguns segundos/);
   assert.doesNotMatch(html, /Não foi possível carregar esta página/);
   await new Promise((resolve) => setTimeout(resolve, 80));
   assert.equal(partial?.sources.analytics, "connected");
-  assert.equal(partial?.sources.expo, "unavailable");
+  assert.equal(partial?.sources.expo, "error");
 });
 
 test("loadUsageSources: GA4 erro não impede Expo", async () => {
@@ -177,11 +195,12 @@ test("loadUsageSources: GA4 erro não impede Expo", async () => {
     pharusTask: async () => pharusOk,
     quickWaitMs: 50,
   });
-  assert.equal(page.sources.analytics, "unavailable");
+  assert.equal(page.sources.analytics, "error");
   assert.equal(page.sources.expo, "connected");
   const html = renderUtilizacaoApp(page);
-  assert.match(html, /Google Analytics indisponível no momento/);
-  assert.match(html, /Usuários únicos por dia/);
+  assert.match(html, /Não foi possível carregar as métricas de utilização/);
+  assert.match(html, /5\. Versões do App/);
+  assert.doesNotMatch(html, /Usuários únicos por dia/);
 });
 
 test("loadUsageSources: Expo erro chega em onPartial sem apagar GA4", async () => {
@@ -199,10 +218,10 @@ test("loadUsageSources: Expo erro chega em onPartial sem apagar GA4", async () =
   await new Promise((resolve) => setTimeout(resolve, 80));
   assert.ok(partial);
   assert.equal(partial.sources.analytics, "connected");
-  assert.equal(partial.sources.expo, "unavailable");
+  assert.equal(partial.sources.expo, "error");
   const html = renderUtilizacaoApp(partial);
   assert.match(html, />19</);
-  assert.match(html, /Dados do Expo\/EAS indisponíveis no momento/);
+  assert.match(html, /Não foi possível carregar os dados técnicos do Expo\/EAS/);
 });
 
 test("withTimeout devolve fallback sem derrubar a outra fonte", async () => {
@@ -215,4 +234,63 @@ test("withTimeout devolve fallback sem derrubar a outra fonte", async () => {
 test("tempo de engajamento não usa segundos brutos", () => {
   assert.equal(formatDurationSeconds(780), "13 min");
   assert.equal(formatDurationSeconds(657), "10 min 57 s");
+  assert.equal(formatDurationSeconds(128), "2 min 08 s");
+});
+
+test("loading Analytics mostra skeleton e não 0", () => {
+  const html = renderUtilizacaoApp(mergeUsageSources({
+    analytics: ANALYTICS_LOADING,
+    expo: expoOk,
+    pharus: pharusOk,
+  }));
+  assert.equal(mergeUsageSources({ analytics: ANALYTICS_LOADING, expo: expoOk, pharus: pharusOk }).sources.analytics, "loading");
+  assert.match(html, /ui-skeleton/);
+  assert.match(html, /ui-skeleton-chart/);
+  assert.doesNotMatch(html, /Não foi possível carregar as métricas de utilização/);
+  assert.doesNotMatch(html, />19</);
+});
+
+test("loading Expo mantém Analytics visível", () => {
+  const page = mergeUsageSources({ analytics: analyticsOk, expo: EXPO_LOADING, pharus: pharusOk });
+  assert.equal(page.sources.analytics, "connected");
+  assert.equal(page.sources.expo, "loading");
+  const html = renderUtilizacaoApp(page);
+  assert.match(html, />19</);
+  assert.match(html, /Carregando dados do Expo\/EAS/);
+  assert.match(html, /Essa fonte pode levar alguns segundos/);
+  assert.match(html, /ui-skeleton-table/);
+  assert.doesNotMatch(html, /Não foi possível carregar os dados técnicos do Expo\/EAS/);
+});
+
+test("zero real não vira skeleton", () => {
+  const analyticsZero = {
+    ...analyticsOk,
+    summary: { ...analyticsOk.summary, active1DayUsers: 0, sessions: 0 },
+  };
+  const html = renderUtilizacaoApp(mergeUsageSources({ analytics: analyticsZero, expo: expoOk, pharus: pharusOk }));
+  assert.match(html, />0</);
+  assert.doesNotMatch(html, /ui-skeleton-value/);
+  assert.doesNotMatch(html, /Carregando dados do Expo\/EAS/);
+});
+
+test("retry Expo não apaga Analytics", async () => {
+  const current = mergeUsageSources({ analytics: analyticsOk, expo: EXPO_FALLBACK, pharus: pharusOk });
+  const page = await retryUsageSource("expo", {
+    current,
+    expoTask: async () => expoOk,
+  });
+  assert.equal(page.sources.analytics, "connected");
+  assert.equal(page.sources.expo, "connected");
+  assert.match(renderUtilizacaoApp(page), />19</);
+  assert.match(renderUtilizacaoApp(page), /1\.2\.1/);
+});
+
+test("retry Analytics não apaga Expo", async () => {
+  const current = mergeUsageSources({ analytics: ANALYTICS_FALLBACK, expo: expoOk, pharus: pharusOk });
+  const page = await retryUsageSource("analytics", {
+    current,
+    analyticsTask: async () => analyticsOk,
+  });
+  assert.equal(page.sources.analytics, "connected");
+  assert.equal(page.sources.expo, "connected");
 });

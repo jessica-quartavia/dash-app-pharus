@@ -113,17 +113,17 @@ export const METRICS_DOCUMENTATION = [
     metric("saude-jornada", "Saúde operacional", "Mostra clientes sem avanço ou parados por vários dias.", "Considera somente clientes que ainda não chegaram à Central e cria faixas de mais de 7, 15 e 30 dias desde o último avanço."),
   ]),
 
-  page("utilizacao-app", "Utilização do App", "Mostra uso e comportamento do app junto com informações técnicas do Expo/EAS.", [
-    metric("fonte-uso", "Fonte atual", "Indica de onde vêm as informações desta página.", "O Google Analytics cobre o uso da plataforma web. O Expo/EAS cobre builds, updates e performance do aplicativo. O Supabase cobre a base oficial de clientes e recursos. Os dados mobile do Firebase Analytics ainda não fazem parte desta página."),
+  page("utilizacao-app", "Utilização do App", "Mostra utilização e comportamento da plataforma pelo Google Analytics, com informações técnicas do Expo/EAS.", [
+    metric("fonte-uso", "Fonte atual", "Indica de onde vêm as informações desta página.", "O Google Analytics fornece métricas de utilização e comportamento da plataforma. O Expo/EAS complementa com informações técnicas do aplicativo, como builds, versões, updates e runtime. A base Pharus fornece o contexto de negócio. A property atual está classificada como WEB na Data API; essa distinção técnica não aparece na página operacional."),
     metric("usuarios-ativos-1d", "Usuários ativos 1 dia", "Usuários distintos ativos no último dia do período.", "Usa a métrica oficial active1DayUsers da Google Analytics Data API. Não soma usuários diários."),
     metric("usuarios-ativos-7d", "Usuários ativos 7 dias", "Usuários distintos ativos em 7 dias.", "Usa a métrica oficial active7DayUsers da Google Analytics Data API. Não soma usuários diários."),
     metric("usuarios-ativos-28d", "Usuários ativos 28 dias", "Usuários distintos ativos em 28 dias.", "Usa a métrica oficial active28DayUsers da Google Analytics Data API. O painel Firebase pode mostrar 30 dias, o que gera diferença esperada."),
     metric("sessoes", "Sessões", "Quantidade de sessões no período consultado.", "Usa a métrica oficial sessions da Data API no recorte selecionado."),
     metric("novos-usuarios", "Novos usuários", "Usuários que tiveram o primeiro engajamento no período.", "Usa a métrica oficial newUsers da Data API."),
     metric("sessoes-por-usuario", "Sessões por usuário", "Média de sessões por usuário ativo.", "Usa a métrica oficial sessionsPerUser da Data API."),
-    metric("serie-utilizacao", "Evolução de utilização", "Mostra usuários ativos por dia.", "Usa date + activeUsers da Data API e começa na primeira data que possui informação real, sem preencher lacunas com zero."),
-    metric("plataformas", "Android, iOS e Web", "Distribuição de usuários ativos por plataforma.", "Agrupa activeUsers pela dimensão platform da Data API."),
-    metric("versoes", "Versões", "Versões do aplicativo com usuários ativos.", "Agrupa activeUsers por appVersion e platform retornados pela Data API."),
+    metric("serie-utilizacao", "Evolução de utilização", "Mostra usuários ativos por dia.", "Usa date + activeUsers da Data API e começa na primeira data que possui informação real, sem preencher lacunas com zero. A página operacional não explica essa regra."),
+    metric("plataformas", "Android, iOS e Web", "Classificação técnica da property na Data API.", "Agrupa activeUsers pela dimensão platform. A property atual é WEB; ANDROID e iOS não retornam dados. Essa classificação fica na documentação, não na página de utilização."),
+    metric("versoes", "Versões", "Versões técnicas do aplicativo encontradas no Expo/EAS.", "Mostra as versões e plataformas retornadas pelo Expo/EAS Observe. Não substitui os usuários ativos do Google Analytics."),
     metric("eventos-app", "Eventos", "Principais eventos registrados no aplicativo.", "Usa eventName + eventCount da Data API, mantendo a lista bruta devolvida pela API."),
     metric("engajamento", "Tempo médio de engajamento", "Tempo médio de engajamento por usuário ativo.", "Quando as duas métricas oficiais existem, divide userEngagementDuration por activeUsers. Não inventa fórmula alternativa."),
     metric("retencao", "Retenção", "Retenção de usuários ao longo dos dias.", "Não disponível pela integração atual porque a Data API não oferece um equivalente simples da retenção do painel Firebase.", { status: "pending" }),

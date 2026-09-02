@@ -1,5 +1,6 @@
 import { sendJson } from "../../lib/http.mjs";
 import { buildExpoUsageDataset } from "../../lib/expo/usage-page.mjs";
+import { envPresence } from "../../lib/env-presence.mjs";
 
 export default async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "HEAD") {
@@ -9,6 +10,11 @@ export default async function handler(req, res) {
 
   try {
     const url = new URL(req.url || "/", "http://localhost");
+    if (!process.env.NODE_TEST_CONTEXT) {
+      console.info("[expo] request", {
+        env: envPresence(process.env, ["EXPO_ACCESS_TOKEN", "EXPO_ACCOUNT", "EXPO_PROJECT_SLUG"]),
+      });
+    }
     const filters = {
       startDate: url.searchParams.get("startDate"),
       endDate: url.searchParams.get("endDate"),
@@ -27,6 +33,7 @@ export default async function handler(req, res) {
       { "Cache-Control": "private, max-age=120" },
     );
   } catch {
+    if (!process.env.NODE_TEST_CONTEXT) console.info("[expo] query error", { ok: false });
     sendJson(
       res,
       503,

@@ -1,6 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "dist",
+  "functions": {
+    "api/firebase/usage.js": {
+      "maxDuration": 60
+    },
+    "api/expo/usage.js": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!api/|css/|js/|lib/|pharus-favicon.png|pharus_logo.png).*)",

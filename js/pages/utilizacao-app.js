@@ -1,13 +1,19 @@
 import { bindUsageLineChartTooltips } from "../components/charts.mjs";
 import { bindExpandableChartLists } from "../components/expandable-chart-list.mjs";
+import { bindFloatingTooltips } from "../components/floating-tooltip.mjs";
 import { mountInteractiveTable } from "../components/interactive-table.mjs";
 import { mountPage } from "../lib/page-runtime.mjs";
-import { getAppUsagePage } from "../services/app-pharus/app-usage.mjs";
+import { getAppUsagePage, mergeUsageSources, retryAppUsageSource } from "../services/app-pharus/app-usage.mjs";
+import { ANALYTICS_LOADING, EXPO_LOADING, PHARUS_LOADING } from "../services/app-pharus/usage-sources.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
 import { formatDate, formatDecimal, formatNumber, formatPercent } from "../utils/format.mjs";
 import { renderUtilizacaoApp } from "./utilizacao-app-view.mjs";
 
 export { renderUtilizacaoApp };
+
+let lastUsagePage = null;
+let lastUsageFilters = {};
+let retrying = false;
 
 const channelInsightsTable = mountInteractiveTable("expo-channel-insights-table-host", {
   defaultState: { sortKey: "embeddedUsers", sortDir: "desc" }, rowIdKey: "id",
@@ -68,36 +74,77 @@ const updatesTable = mountInteractiveTable("expo-updates-table-host", {
 });
 
 export function bindUtilizacaoApp(data) {
+  lastUsagePage = data;
   const expo = data.expo || {};
-  channelInsightsTable.mount({ rows: (expo.channelInsights || []).map((row, index) => ({ ...row, id: `${row.channel}-${row.runtimeVersion}-${index}` })) });
-  updateInsightsTable.mount({ rows: (expo.updateInsights || []).map((row) => ({
-    ...row,
-    uniqueUsersValue: row.uniqueUsers?.status === "available" ? row.uniqueUsers.value : null,
-    launchesValue: row.launches?.status === "available" ? row.launches.value : null,
-    crashRateValue: row.crashRate?.status === "available" ? row.crashRate.value : null,
-  })) });
-  performanceTable.mount({ rows: expo.observe?.performanceRows || [] });
-  buildsTable.mount({ rows: expo.builds || [] });
-  updatesTable.mount({ rows: expo.updates || [] });
+  if (!expo.loading && expo.available) {
+    channelInsightsTable.mount({ rows: (expo.channelInsights || []).map((row, index) => ({ ...row, id: `${row.channel}-${row.runtimeVersion}-${index}` })) });
+    updateInsightsTable.mount({ rows: (expo.updateInsights || []).map((row) => ({
+      ...row,
+      uniqueUsersValue: row.uniqueUsers?.status === "available" ? row.uniqueUsers.value : null,
+      launchesValue: row.launches?.status === "available" ? row.launches.value : null,
+      crashRateValue: row.crashRate?.status === "available" ? row.crashRate.value : null,
+    })) });
+    performanceTable.mount({ rows: expo.observe?.performanceRows || [] });
+    buildsTable.mount({ rows: expo.builds || [] });
+    updatesTable.mount({ rows: expo.updates || [] });
+  }
   const root = document.getElementById("page-content") || document;
   bindUsageLineChartTooltips(root);
+  bindFloatingTooltips(root);
   bindExpandableChartLists(root);
+  bindSourceRetry(root);
+}
+
+function paintUsagePage(data) {
+  const contentEl = document.getElementById("page-content");
+  if (!contentEl) return;
+  lastUsagePage = data;
+  contentEl.innerHTML = renderUtilizacaoApp(data);
+  contentEl.dataset.pageId = "utilizacao_app";
+  bindUtilizacaoApp(data);
+}
+
+function bindSourceRetry(root) {
+  root.querySelectorAll("[data-retry-source]").forEach((button) => {
+    button.addEventListener("click", () => {
+      void retrySource(button.dataset.retrySource);
+    });
+  });
+}
+
+async function retrySource(source) {
+  if (!source || retrying) return;
+  retrying = true;
+  const current = lastUsagePage || {};
+  const loadingPage = mergeUsageSources({
+    analytics: source === "analytics" ? ANALYTICS_LOADING : current.analytics,
+    expo: source === "expo" ? EXPO_LOADING : current.expo,
+    pharus: source === "pharus" ? PHARUS_LOADING : current.pharus,
+  });
+  paintUsagePage(loadingPage);
+  try {
+    const next = await retryAppUsageSource(source, lastUsageFilters, current);
+    paintUsagePage(next);
+  } finally {
+    retrying = false;
+  }
 }
 
 export function bootUtilizacaoApp() {
   mountPage({
     pageId: "utilizacao_app",
-    filterNote: "O período vale para o Google Analytics. Expo/EAS e o contexto Pharus usam o recorte quando a fonte aceita.",
-    load: (filters, options) => getAppUsagePage(filters, {
-      ...options,
-      onPartial: (next) => {
-        const contentEl = document.getElementById("page-content");
-        if (!contentEl) return;
-        contentEl.innerHTML = renderUtilizacaoApp(next);
-        bindUtilizacaoApp(next);
-      },
-    }),
+    filterNote: "O período vale para o Google Analytics. Nas seções técnicas, o Expo/EAS usa o recorte quando a fonte aceita.",
+    preserveContentOnReload: true,
+    load: (filters, options) => {
+      lastUsageFilters = filters;
+      return getAppUsagePage(filters, {
+        ...options,
+        previous: lastUsagePage,
+        onPartial: paintUsagePage,
+      });
+    },
     render: (data) => {
+      lastUsagePage = data;
       queueMicrotask(() => bindUtilizacaoApp(data));
       return renderUtilizacaoApp(data);
     },

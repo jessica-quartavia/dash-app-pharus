@@ -40,6 +40,55 @@ test("modo Vercel usa e-mail e private key com quebra de linha restaurada", () =
   assert.equal(result.clientOptions.credentials.private_key, "line1\nline2");
 });
 
+test("private key em env vence arquivo local mesmo se o JSON existir", () => {
+  const result = resolveGa4Config(
+    {
+      GA4_PROPERTY_ID: "547012679",
+      GOOGLE_APPLICATION_CREDENTIALS: "./service.json",
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: "service@example.iam.gserviceaccount.com",
+      GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----",
+      GOOGLE_SERVICE_ACCOUNT_PROJECT_ID: "pharus-proj",
+    },
+    { cwd: "C:/app", existsSync: () => true },
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.authMode, "environment");
+  assert.equal(result.clientOptions.credentials.project_id, "pharus-proj");
+  assert.match(result.clientOptions.credentials.private_key, /\nabc\n/);
+  assert.equal(result.clientOptions.keyFilename, undefined);
+});
+
+test("produção não exige GOOGLE_APPLICATION_CREDENTIALS", () => {
+  const result = resolveGa4Config(
+    {
+      VERCEL: "1",
+      NODE_ENV: "production",
+      GA4_PROPERTY_ID: "547012679",
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: "service@example.iam.gserviceaccount.com",
+      GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: "line1\\nline2",
+    },
+    { cwd: "/var/task", existsSync: () => false },
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.authMode, "environment");
+  assert.equal(result.clientOptions.credentials.private_key, "line1\nline2");
+});
+
+test("produção ignora caminho de arquivo local inexistente", () => {
+  const result = resolveGa4Config(
+    {
+      VERCEL: "1",
+      GA4_PROPERTY_ID: "547012679",
+      GOOGLE_APPLICATION_CREDENTIALS: "./pharus-sa.json",
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: "service@example.iam.gserviceaccount.com",
+      GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: "k\\n",
+    },
+    { cwd: "/var/task", existsSync: () => false },
+  );
+  assert.equal(result.ok, true);
+  assert.equal(result.authMode, "environment");
+});
+
 test("erro seguro não expõe private key, bearer ou JWT", () => {
   const secret = "-----BEGIN PRIVATE KEY-----\nSUPER_SECRET\n-----END PRIVATE KEY-----";
   const jwt = `${"a".repeat(24)}.${"b".repeat(24)}.${"c".repeat(24)}`;

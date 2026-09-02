@@ -14,6 +14,7 @@ export function mountPage({
   render,
   filterNote = "Todos os indicadores desta página respeitam os filtros.",
   resolveFields = null,
+  preserveContentOnReload = false,
 }) {
   const baseFields = (PAGE_FILTERS()[pageId] || []).filter(
     (field) => field.key !== "advisor" || (field.options || []).length > 1,
@@ -33,7 +34,7 @@ export function mountPage({
       pageState.get(pageId)?.unbindFilters?.();
       return;
     }
-    void refresh(pageId, { load, render, filterNote, force: true });
+    void refresh(pageId, { load, render, filterNote, force: true, preserveContentOnReload });
   });
 }
 
@@ -48,7 +49,7 @@ function fieldSignature(fields = []) {
     .join("|");
 }
 
-async function refresh(pageId, { load, render, filterNote, force = false }) {
+async function refresh(pageId, { load, render, filterNote, force = false, preserveContentOnReload = false }) {
   const state = pageState.get(pageId);
   if (!state) return;
   const filtersEl = document.getElementById("page-filters");
@@ -66,7 +67,10 @@ async function refresh(pageId, { load, render, filterNote, force = false }) {
     return;
   }
 
-  contentEl.innerHTML = loadingState();
+  const samePagePainted = contentEl.dataset.pageId === pageId && contentEl.childElementCount > 0;
+  if (!(preserveContentOnReload && samePagePainted)) {
+    contentEl.innerHTML = loadingState();
+  }
   let data;
   try {
     data = await load(state.filters, { force });
@@ -113,12 +117,12 @@ async function refresh(pageId, { load, render, filterNote, force = false }) {
         filters: state.filters,
         onChange: (next) => {
           state.filters = next;
-          void refresh(pageId, { load, render, filterNote });
+          void refresh(pageId, { load, render, filterNote, preserveContentOnReload });
         },
         onClear: () => {
           state.filters = defaultFilters();
           filtersEl.dataset.bound = "";
-          void refresh(pageId, { load, render, filterNote, force: true });
+          void refresh(pageId, { load, render, filterNote, force: true, preserveContentOnReload });
         },
       });
     }
@@ -127,6 +131,7 @@ async function refresh(pageId, { load, render, filterNote, force = false }) {
 
   try {
     contentEl.innerHTML = render(data, state.filters);
+    contentEl.dataset.pageId = pageId;
     bindExpandableChartLists(contentEl);
     contentEl.querySelector("[data-page-retry]")?.addEventListener("click", () => {
       void refresh(pageId, { load, render, filterNote, force: true });
