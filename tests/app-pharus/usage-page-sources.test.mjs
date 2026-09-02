@@ -101,7 +101,11 @@ test("fontes independentes: GA4 OK + Expo OK", () => {
   assert.match(html, /10 min 57 s/);
   assert.match(html, /is-featured/);
   assert.match(html, /Quantidade de usuários distintos que utilizaram a plataforma nos últimos 7 dias/);
-  assert.match(html, /5\. Versões do App/);
+  assert.match(html, /5\. Updates e runtime/);
+  assert.match(html, /6\. Builds e deployments/);
+  assert.match(html, /7\. Contexto da base Pharus/);
+  assert.doesNotMatch(html, /Versões do App/);
+  assert.doesNotMatch(html, /Saúde e performance/);
   assert.doesNotMatch(html, /5\. Uso do aplicativo/);
   assert.doesNotMatch(html, /Usuários únicos por dia/);
   assert.doesNotMatch(html, /Usuários únicos \(update embarcado\)/);
@@ -134,8 +138,9 @@ test("fontes independentes: GA4 ERROR + Expo OK", () => {
   const html = renderUtilizacaoApp(page);
   assert.match(html, /Não foi possível carregar as métricas de utilização/);
   assert.match(html, /data-retry-source="analytics"/);
-  assert.match(html, /5\. Versões do App/);
-  assert.match(html, /1\.2\.1/);
+  assert.match(html, /5\. Updates e runtime/);
+  assert.match(html, /expo-builds-table-host/);
+  assert.doesNotMatch(html, /Versões do App/);
   assert.doesNotMatch(html, /Usuários únicos por dia/);
   assert.doesNotMatch(html, /Usuários ativos · 1 dia/);
 });
@@ -209,7 +214,8 @@ test("loadUsageSources: GA4 erro não impede Expo", async () => {
   assert.equal(page.sources.expo, "connected");
   const html = renderUtilizacaoApp(page);
   assert.match(html, /Não foi possível carregar as métricas de utilização/);
-  assert.match(html, /5\. Versões do App/);
+  assert.match(html, /5\. Updates e runtime/);
+  assert.doesNotMatch(html, /Versões do App/);
   assert.doesNotMatch(html, /Usuários únicos por dia/);
 });
 
@@ -292,7 +298,8 @@ test("retry Expo não apaga Analytics", async () => {
   assert.equal(page.sources.analytics, "connected");
   assert.equal(page.sources.expo, "connected");
   assert.match(renderUtilizacaoApp(page), />19</);
-  assert.match(renderUtilizacaoApp(page), /1\.2\.1/);
+  assert.match(renderUtilizacaoApp(page), /5\. Updates e runtime/);
+  assert.match(renderUtilizacaoApp(page), /expo-builds-table-host/);
 });
 
 test("retry Analytics não apaga Expo", async () => {
@@ -331,11 +338,17 @@ test("Vercel sem Observe não mostra versões como zero do período", () => {
     observe: null,
   };
   const html = renderUtilizacaoApp(mergeUsageSources({ analytics: analyticsOk, expo: expoServerless, pharus: pharusOk }));
-  assert.match(html, /Dados de versões aguardando sincronização/);
-  assert.match(html, /Dados de saúde e performance aguardando sincronização/);
+  assert.doesNotMatch(html, /Versões do App/);
+  assert.doesNotMatch(html, /Saúde e performance/);
+  assert.doesNotMatch(html, /Dados de versões aguardando sincronização/);
+  assert.doesNotMatch(html, /Dados de saúde e performance aguardando sincronização/);
   assert.doesNotMatch(html, /Métrica não disponível nesta integração/);
-  assert.match(html, /Dados de insights detalhados disponíveis apenas no diagnóstico local/);
+  assert.doesNotMatch(html, /Dados de insights detalhados disponíveis apenas no diagnóstico local/);
+  assert.match(html, /5\. Updates e runtime/);
+  assert.match(html, /6\. Builds e deployments/);
   assert.match(html, /expo-channel-runtime-table-host/);
   assert.doesNotMatch(html, /expo-channel-insights-table-host/);
   assert.doesNotMatch(html, /expo-update-insights-table-host/);
+  assert.doesNotMatch(html, /expo-performance-table-host/);
+  assert.doesNotMatch(html, /sec-expo-versions|sec-expo-health/);
 });

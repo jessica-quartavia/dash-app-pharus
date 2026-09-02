@@ -73,6 +73,10 @@ test("regras ainda não comprovadas ficam explicitamente pendentes", () => {
   assert.ok(pending.some(({ name }) => name === "Retenção"));
   assert.ok(pending.some(({ name }) => name === "Valor pago"));
   assert.ok(pending.every(({ calculation }) => /definição|construção|não disponível/i.test(calculation)));
+  const hidden = METRICS_DOCUMENTATION.flatMap(({ metrics }) => metrics.filter(({ status }) => status === "hidden"));
+  assert.ok(hidden.some(({ name }) => name === "Versões"));
+  assert.ok(hidden.some(({ name }) => name === "Saúde e performance"));
+  assert.ok(hidden.every(({ calculation }) => /Não exibido atualmente no dashboard de produção/i.test(calculation)));
 });
 
 test("Utilização do App comunica fontes GA4, Expo e Pharus", async () => {
@@ -101,9 +105,10 @@ test("Utilização do App comunica fontes GA4, Expo e Pharus", async () => {
   assert.match(serviceSource, /loadUsageSources/);
   assert.match(pageSource, /renderUtilizacaoApp/);
   assert.match(pageSource, /bindFloatingTooltips/);
-  for (const section of ["1. Utilização da plataforma", "2. Evolução de uso", "3. Engajamento", "4. Principais eventos", "5. Versões do App", "6. Updates e runtime", "7. Builds e deployments", "8. Saúde e performance", "9. Contexto da base Pharus"]) {
+  for (const section of ["1. Utilização da plataforma", "2. Evolução de uso", "3. Engajamento", "4. Principais eventos", "5. Updates e runtime", "6. Builds e deployments", "7. Contexto da base Pharus"]) {
     assert.match(viewSource, new RegExp(section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
+  assert.doesNotMatch(viewSource, /5\. Versões do App|8\. Saúde e performance|9\. Contexto da base Pharus/);
   assert.doesNotMatch(viewSource, /5\. Uso do aplicativo|Usuários únicos por dia|Usuários únicos \(update embarcado\)|sec-expo-usage/);
   assert.doesNotMatch(viewSource, /Uso da plataforma Web|Google Analytics Web|Plataforma detectada/);
   assert.match(viewSource, /não usuários únicos do Google Analytics ou Expo/i);

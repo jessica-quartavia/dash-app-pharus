@@ -242,7 +242,7 @@ function expoCap(expo, key) {
   return expo?.capabilities?.[key] === true;
 }
 
-function expoVersionsBody(expo) {
+export function expoVersionsBody(expo) {
   if (expoCap(expo, "versions") && expo.versionRows?.length) {
     return hBars((expo.versionRows || []).map((row) => ({ label: `${row.version} · ${row.platform}`, count: row.events, percent: row.percent })).sort((a, b) => b.count - a.count), { compact: true, preserveOrder: true, initialLimit: 8 });
   }
@@ -251,26 +251,27 @@ function expoVersionsBody(expo) {
 }
 
 function expoUpdatesBody(expo) {
-  const channelHost = expoCap(expo, "channelInsights")
-    ? `<div id="expo-channel-insights-table-host"></div>`
-    : expoCap(expo, "runtimes") || expoCap(expo, "channels")
-      ? `<div id="expo-channel-runtime-table-host"></div>`
-      : sectionUnavailable();
-  const insightsHost = expoCap(expo, "updateInsights")
-    ? `<div id="expo-update-insights-table-host"></div>`
-    : `<p class="usage-quiet-empty">Dados de insights detalhados disponíveis apenas no diagnóstico local</p>`;
-  const runtimeHost = expoCap(expo, "runtimes") || (expo.updates || []).length
-    ? `<div id="expo-updates-table-host"></div>`
-    : sectionUnavailable();
-  return `<h4 class="subsection-title">Por channel e runtime</h4>${channelHost}<h4 class="subsection-title">Insights por grupo de update</h4>${insightsHost}<h4 class="subsection-title">Runtime versions e deployments</h4>${runtimeHost}`;
+  const parts = [];
+  if (expoCap(expo, "channelInsights")) {
+    parts.push(`<h4 class="subsection-title">Por channel e runtime</h4><div id="expo-channel-insights-table-host"></div>`);
+  } else if (expoCap(expo, "runtimes") || expoCap(expo, "channels")) {
+    parts.push(`<h4 class="subsection-title">Por channel e runtime</h4><div id="expo-channel-runtime-table-host"></div>`);
+  }
+  if (expoCap(expo, "updateInsights")) {
+    parts.push(`<h4 class="subsection-title">Insights por grupo de update</h4><div id="expo-update-insights-table-host"></div>`);
+  }
+  if (expoCap(expo, "runtimes") || (expo.updates || []).length) {
+    parts.push(`<h4 class="subsection-title">Runtime versions e deployments</h4><div id="expo-updates-table-host"></div>`);
+  }
+  return parts.join("") || sectionEmpty("Sem dados no período");
 }
 
 function expoBuildsBody(expo) {
   if (expoCap(expo, "builds") || (expo.builds || []).length) return `<div id="expo-builds-table-host"></div>`;
-  return sectionUnavailable();
+  return sectionEmpty("Sem dados no período");
 }
 
-function expoHealthBody(expo) {
+export function expoHealthBody(expo) {
   if (expoCap(expo, "observe")) return `<div id="expo-performance-table-host"></div>`;
   return sectionUnavailable("Dados de saúde e performance aguardando sincronização.");
 }
@@ -331,30 +332,18 @@ export function renderUtilizacaoApp(data = {}) {
       ),
     })}
     ${sectionBlock({
-      id: "sec-expo-versions",
-      title: "5. Versões do App",
-      lead: "Informação técnica do Expo/EAS, não um indicador de usuários da plataforma.",
-      body: expoSectionBody(expo, expoVersionsBody(expo)),
-    })}
-    ${sectionBlock({
       id: "sec-expo-updates",
-      title: "6. Updates e runtime",
+      title: "5. Updates e runtime",
       body: expoSectionBody(expo, expoUpdatesBody(expo)),
     })}
     ${sectionBlock({
       id: "sec-expo-builds",
-      title: "7. Builds e deployments",
+      title: "6. Builds e deployments",
       body: expoSectionBody(expo, expoBuildsBody(expo)),
     })}
     ${sectionBlock({
-      id: "sec-expo-health",
-      title: "8. Saúde e performance",
-      lead: "Medições técnicas do EAS Observe, quando a fonte retornar eventos.",
-      body: expoSectionBody(expo, expoHealthBody(expo)),
-    })}
-    ${sectionBlock({
       id: "sec-app-context",
-      title: "9. Contexto da base Pharus",
+      title: "7. Contexto da base Pharus",
       lead: "Estes indicadores representam a base de clientes e não usuários únicos do Google Analytics ou Expo.",
       body: contextKpis(pharus),
     })}

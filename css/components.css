@@ -810,6 +810,12 @@
   color: var(--color-warning);
 }
 
+.doc-status--hidden {
+  white-space: normal;
+  background: color-mix(in srgb, var(--muted) 16%, var(--surface));
+  color: var(--muted);
+}
+
 .doc-metric-copy {
   display: grid;
   gap: 12px;

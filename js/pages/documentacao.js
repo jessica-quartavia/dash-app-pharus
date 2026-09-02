@@ -9,7 +9,9 @@ import { escapeHtml } from "../utils/escape.mjs";
 function metricBlock(item, pageId) {
   const status = item.status === "pending"
     ? `<span class="doc-status doc-status--pending">Regra ainda em definição</span>`
-    : "";
+    : item.status === "hidden"
+      ? `<span class="doc-status doc-status--hidden">Não exibido atualmente no dashboard de produção</span>`
+      : "";
   const example = item.example
     ? `<div class="doc-metric-example"><strong>Exemplo</strong><p>${escapeHtml(item.example)}</p></div>`
     : "";
