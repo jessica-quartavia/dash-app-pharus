@@ -8,9 +8,10 @@
     "dev": "node scripts/dev-server.mjs",
     "start": "node scripts/dev-server.mjs",
     "lint": "eslint js lib api scripts tests",
-    "test": "node --test tests/auth/corporate-email.test.mjs tests/auth/oauth-redirect.test.mjs tests/auth/auth-config.test.mjs tests/filters/apply-filters.test.mjs tests/filters/date-range-picker.test.mjs tests/utils/sort.test.mjs tests/utils/format-currency.test.mjs tests/app-pharus/kpi-status.test.mjs tests/app-pharus/official-client.test.mjs tests/app-pharus/clients-page.test.mjs tests/app-pharus/clients-filters.test.mjs tests/app-pharus/segmentation.test.mjs tests/app-pharus/api-json.test.mjs tests/app-pharus/mechanisms.test.mjs tests/app-pharus/domain-presenters.test.mjs tests/app-pharus/usage-page-sources.test.mjs tests/ui/expandable-chart-list.test.mjs tests/ui/floating-tooltip.test.mjs tests/ui/skeleton.test.mjs tests/documentation/metrics-documentation.test.mjs tests/expo/expo-metric.test.mjs tests/expo/eas-cli-runtime.test.mjs tests/expo/graphql-catalog.test.mjs tests/firebase-analytics/*.test.mjs",
+    "test": "node --test tests/auth/corporate-email.test.mjs tests/auth/oauth-redirect.test.mjs tests/auth/auth-config.test.mjs tests/filters/apply-filters.test.mjs tests/filters/date-range-picker.test.mjs tests/utils/sort.test.mjs tests/utils/format-currency.test.mjs tests/app-pharus/kpi-status.test.mjs tests/app-pharus/official-client.test.mjs tests/app-pharus/clients-page.test.mjs tests/app-pharus/clients-filters.test.mjs tests/app-pharus/segmentation.test.mjs tests/app-pharus/api-json.test.mjs tests/app-pharus/mechanisms.test.mjs tests/app-pharus/domain-presenters.test.mjs tests/app-pharus/usage-page-sources.test.mjs tests/ui/expandable-chart-list.test.mjs tests/ui/floating-tooltip.test.mjs tests/ui/skeleton.test.mjs tests/documentation/metrics-documentation.test.mjs tests/expo/expo-metric.test.mjs tests/expo/eas-cli-runtime.test.mjs tests/expo/graphql-catalog.test.mjs tests/expo/observe-snapshot.test.mjs tests/expo/persisted-insights.test.mjs tests/firebase-analytics/*.test.mjs",
     "diagnose:ga4": "node scripts/diagnose-ga4.mjs",
     "diagnose:expo": "node scripts/diagnose-expo.mjs",
+    "collect:expo-observe": "node scripts/collect-expo-observe.mjs",
     "build": "node scripts/build.mjs"
   },
   "devDependencies": {

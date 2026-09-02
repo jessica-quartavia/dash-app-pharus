@@ -247,7 +247,7 @@ function expoVersionsBody(expo) {
     return hBars((expo.versionRows || []).map((row) => ({ label: `${row.version} · ${row.platform}`, count: row.events, percent: row.percent })).sort((a, b) => b.count - a.count), { compact: true, preserveOrder: true, initialLimit: 8 });
   }
   if (expoCap(expo, "versions")) return sectionEmpty("Sem dados no período");
-  return sectionUnavailable();
+  return sectionUnavailable("Dados de versões aguardando sincronização.");
 }
 
 function expoUpdatesBody(expo) {
@@ -272,7 +272,7 @@ function expoBuildsBody(expo) {
 
 function expoHealthBody(expo) {
   if (expoCap(expo, "observe")) return `<div id="expo-performance-table-host"></div>`;
-  return sectionUnavailable();
+  return sectionUnavailable("Dados de saúde e performance aguardando sincronização.");
 }
 
 function expoSectionBody(expo, extra = "") {

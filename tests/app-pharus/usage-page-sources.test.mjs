@@ -331,7 +331,9 @@ test("Vercel sem Observe não mostra versões como zero do período", () => {
     observe: null,
   };
   const html = renderUtilizacaoApp(mergeUsageSources({ analytics: analyticsOk, expo: expoServerless, pharus: pharusOk }));
-  assert.match(html, /Métrica não disponível nesta integração/);
+  assert.match(html, /Dados de versões aguardando sincronização/);
+  assert.match(html, /Dados de saúde e performance aguardando sincronização/);
+  assert.doesNotMatch(html, /Métrica não disponível nesta integração/);
   assert.match(html, /Dados de insights detalhados disponíveis apenas no diagnóstico local/);
   assert.match(html, /expo-channel-runtime-table-host/);
   assert.doesNotMatch(html, /expo-channel-insights-table-host/);

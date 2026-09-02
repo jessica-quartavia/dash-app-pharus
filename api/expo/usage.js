@@ -2,6 +2,8 @@ import { sendJson } from "../../lib/http.mjs";
 import { buildExpoUsageDataset } from "../../lib/expo/usage-page.mjs";
 import { envPresence } from "../../lib/env-presence.mjs";
 
+/** Coletor Observe (scripts/collect-expo-observe.mjs) não é chamado daqui. */
+
 export default async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "HEAD") {
     sendJson(res, 405, { error: "Método não permitido.", code: "METHOD_NOT_ALLOWED" });
