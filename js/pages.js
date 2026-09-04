@@ -109,6 +109,17 @@ export const PAGES = [
     implemented: true,
   },
   {
+    id: "csat",
+    hash: "csat",
+    aliases: ["satisfacao", "feedback"],
+    group: "operacao",
+    navLabel: "CSAT",
+    title: "CSAT",
+    eyebrow: "Operação",
+    description: "Satisfação das reuniões e das telas do Pharus, em pesquisas distintas.",
+    implemented: true,
+  },
+  {
     id: "utilizacao_app",
     hash: "utilizacao-app",
     aliases: ["app-usage", "usage"],

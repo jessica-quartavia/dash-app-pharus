@@ -87,6 +87,9 @@ export function defaultFilters(overrides = {}) {
     debts: "all",
     advisor: "all",
     client: "all",
+    origin: "all",
+    rating: "all",
+    screen: "all",
     ...overrides,
   };
 }

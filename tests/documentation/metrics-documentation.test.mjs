@@ -24,6 +24,7 @@ const expectedSections = [
   "jornada",
   "utilizacao-app",
   "pagamentos",
+  "csat",
   "qualidade-dados",
 ];
 
@@ -33,7 +34,7 @@ test("Documentação é a última página da navegação", () => {
   assert.equal(PAGE_GROUPS.at(-1)?.id, "ajuda");
 });
 
-test("registro central cobre as onze páginas com conteúdo suficiente", () => {
+test("registro central cobre as doze páginas com conteúdo suficiente", () => {
   assert.deepEqual(METRICS_DOCUMENTATION.map(({ id }) => id), expectedSections);
   assert.equal(
     DOCUMENTED_METRIC_COUNT,
@@ -72,6 +73,7 @@ test("regras ainda não comprovadas ficam explicitamente pendentes", () => {
   assert.ok(pending.some(({ name }) => name === "Dívidas na segmentação"));
   assert.ok(pending.some(({ name }) => name === "Retenção"));
   assert.ok(pending.some(({ name }) => name === "Valor pago"));
+  assert.ok(pending.some(({ name }) => name === "Classificação da nota 4"));
   assert.ok(pending.every(({ calculation }) => /definição|construção|não disponível/i.test(calculation)));
   const hidden = METRICS_DOCUMENTATION.flatMap(({ metrics }) => metrics.filter(({ status }) => status === "hidden"));
   assert.ok(hidden.some(({ name }) => name === "Versões"));

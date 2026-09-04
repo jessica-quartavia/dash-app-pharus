@@ -30,6 +30,7 @@ const server = createServer(async (req, res) => {
     "/api/expo/usage": "../api/expo/usage.js",
     "/api/firebase/usage": "../api/firebase/usage.js",
     "/api/dashboard": "../api/dashboard.js",
+    "/api/csat": "../api/csat.js",
   };
 
   if (apiHandlers[url.pathname]) {

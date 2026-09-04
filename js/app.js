@@ -20,6 +20,7 @@ async function startPortal() {
     () => import("./pages/formularios.js").then((m) => m.bootFormularios()),
     () => import("./pages/jornada.js").then((m) => m.bootJornada()),
     () => import("./pages/pagamentos.js").then((m) => m.bootPagamentos()),
+    () => import("./pages/csat.js").then((m) => m.bootCsat()),
     () => import("./pages/utilizacao-app.js").then((m) => m.bootUtilizacaoApp()),
     () => import("./pages/qualidade-dados.js").then((m) => m.bootQualidade()),
     () => import("./pages/documentacao.js").then((m) => m.bootDocumentacao()),

@@ -143,6 +143,17 @@ export const METRICS_DOCUMENTATION = [
     metric("valor-pagamentos", "Valor pago", "Indicaria o valor financeiro dos pagamentos.", "Regra ainda em definição porque a fonte atual possui datas e ciclos, mas não possui valor monetário. O dashboard não estima receita.", { status: "pending" }),
   ]),
 
+  page("csat", "CSAT", "O CSAT mostra o quanto a pessoa ficou satisfeita com uma experiência. Esta página separa as notas das reuniões das notas das telas do Pharus.", [
+    metric("csat", "CSAT", "O CSAT mostra o quanto a pessoa ficou satisfeita com uma experiência.", "Conta as avaliações reais de cada fonte e mostra a nota média sem misturar reuniões e plataforma como se fossem a mesma pesquisa."),
+    metric("csat-reunioes", "CSAT de reuniões", "Usamos as notas deixadas depois das reuniões.", "Lê core.scheduled_meeting_evaluation. A nota é o campo stars, de 1 a 5."),
+    metric("csat-plataforma", "CSAT da plataforma", "Usamos os feedbacks enviados dentro das telas do Pharus.", "Não existe a tabela metrics.feedback. A página lê metrics.feedback_surveys e metrics.feedback_responses com metric_type = csat."),
+    metric("nota-media", "Nota média", "Somamos todas as notas e dividimos pela quantidade de avaliações.", "Usa somente notas registradas. O resultado aparece com uma casa decimal, por exemplo 4,8."),
+    metric("distribuicao", "Distribuição", "Mostra quantas pessoas deram 1, 2, 3, 4 ou 5 estrelas.", "Agrupa as avaliações pela nota inteira. Estrelas sem resposta aparecem com zero."),
+    metric("pontos-positivos", "Pontos positivos", "Mostra o que os clientes disseram que funcionou bem.", "Usa as tags com polaridade positive gravadas no banco, não uma inferência pela nota."),
+    metric("pontos-melhoria", "Pontos de melhoria", "Mostra o que os clientes disseram que poderia melhorar.", "Usa as tags com polaridade improvement gravadas no banco, não uma inferência pela nota."),
+    metric("nota-4", "Classificação da nota 4", "Ainda não está definido se a nota 4 entra como ponto positivo ou de melhoria.", "Regra ainda em definição. A regra recebida cita 4 nos dois lados. Enquanto isso não for confirmado, a nota 4 fica pendente e as tags do banco continuam valendo.", { status: "pending" }),
+  ]),
+
   page("qualidade-dados", "Qualidade dos Dados", "Mostra onde existem informações e onde ainda faltam dados.", [
     metric("base-recorte", "Base do recorte", "Quantidade de clientes usada na análise de qualidade.", "Aplica os filtros sobre os clientes oficiais."),
     metric("cobertura-dominio", "Cobertura por domínio", "Percentual de clientes com informação em cada área.", "Divide os clientes com dado pelo total de clientes do recorte."),

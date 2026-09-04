@@ -2270,3 +2270,103 @@ html[data-theme="dark"] .theme-toggle-icon-moon {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.csat-origin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 8px 0 20px;
+}
+
+.csat-origin-card {
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.csat-origin-label {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.csat-origin-score {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 6px;
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+}
+
+.csat-origin-meta {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.csat-stars {
+  color: var(--color-gold);
+  letter-spacing: 0.08em;
+  font-size: 1.05em;
+}
+
+.csat-star-value {
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.csat-notice {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--surface));
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.csat-score-line {
+  min-height: 280px;
+}
+
+@media (max-width: 720px) {
+  .csat-origin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.csat-rank-table {
+  display: grid;
+  gap: 0;
+}
+
+.csat-rank-head,
+.csat-rank-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) 72px 96px;
+  gap: 12px;
+  align-items: baseline;
+  padding: 10px 4px;
+}
+
+.csat-rank-head {
+  color: var(--muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.csat-rank-row {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.csat-rank-row span:nth-child(2),
+.csat-rank-row span:nth-child(3),
+.csat-rank-head span:nth-child(2),
+.csat-rank-head span:nth-child(3) {
+  text-align: right;
+}

@@ -41,7 +41,7 @@ export function mountPage({
 function fieldSignature(fields = []) {
   return fields
     .map((field) => {
-      if (field.key === "advisor") {
+      if (field.key === "advisor" || field.key === "screen") {
         return `${field.key}:${(field.options || []).map((item) => item.value).join(",")}`;
       }
       return field.key;

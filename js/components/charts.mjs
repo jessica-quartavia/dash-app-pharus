@@ -1,6 +1,6 @@
 import { escapeHtml } from "../utils/escape.mjs";
 import { sortDistributionUnknownLast } from "../utils/sort.mjs";
-import { formatCurrencyCompact, formatCurrencyExact, formatNumber, formatPercent } from "../utils/format.mjs";
+import { formatCurrencyCompact, formatCurrencyExact, formatDecimal, formatNumber, formatPercent } from "../utils/format.mjs";
 import { EXPANDABLE_CHART_LIMIT, renderExpandableChartList } from "./expandable-chart-list.mjs";
 import { bindFloatingTooltips } from "./floating-tooltip.mjs";
 
@@ -183,6 +183,48 @@ export function usageLineChart(series, { valueKey = "count", maxItems = 90, unit
 
 export function bindUsageLineChartTooltips(root = document) {
   bindFloatingTooltips(root);
+}
+
+export function csatScoreLine(series) {
+  const list = (Array.isArray(series) ? series : [])
+    .filter((item) => Number.isFinite(Number(item.average)))
+    .map((item) => ({ ...item, value: Number(item.average) }));
+  if (!list.length) return `<p class="placeholder-note">Sem dados no recorte selecionado.</p>`;
+
+  const width = 1000;
+  const height = 300;
+  const margin = { top: 24, right: 22, bottom: 46, left: 44 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const minValue = 1;
+  const maxValue = 5;
+  const xFor = (index) => margin.left + (list.length === 1 ? plotWidth / 2 : (index / (list.length - 1)) * plotWidth);
+  const yFor = (value) => margin.top + plotHeight - ((value - minValue) / (maxValue - minValue)) * plotHeight;
+  const points = list.map((item, index) => ({ ...item, x: xFor(index), y: yFor(item.value) }));
+  const path = points.map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
+  const grid = [1, 2, 3, 4, 5].map((value) => {
+    const y = yFor(value);
+    return `<g class="usage-line-grid"><line x1="${margin.left}" x2="${width - margin.right}" y1="${y}" y2="${y}"></line><text x="${margin.left - 10}" y="${y + 4}" text-anchor="end">${value}</text></g>`;
+  }).join("");
+  const xLabels = points.map((point) =>
+    `<text class="usage-line-x-label" x="${point.x}" y="${height - 13}" text-anchor="middle">${escapeHtml(monthShortLabel(point.month))}</text>`,
+  ).join("");
+  const pointMarkup = points.map((point) => {
+    const tooltip = `${monthShortLabel(point.month)}\nNota média: ${formatDecimal(point.value, { digits: 1 })}\n${formatNumber(point.count)} avaliações`;
+    return `<g class="usage-line-point" tabindex="0" role="img" aria-label="${escapeHtml(tooltip.replace(/\n/g, ", "))}" data-line-point data-tooltip="${escapeHtml(tooltip)}">
+      <circle class="usage-line-point-hit" cx="${point.x}" cy="${point.y}" r="12"></circle>
+      <circle class="usage-line-point-dot" cx="${point.x}" cy="${point.y}" r="3.25"></circle>
+    </g>`;
+  }).join("");
+
+  return `<div class="usage-line-chart csat-score-line" data-usage-line-chart>
+    <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Evolução mensal da nota média">
+      ${grid}
+      <path class="usage-line-path" d="${path}"></path>
+      ${pointMarkup}
+      ${xLabels}
+    </svg>
+  </div>`;
 }
 
 export function dailyColumns(series, { valueKey = "count", titleSuffix = "usuários únicos", maxItems = 90 } = {}) {

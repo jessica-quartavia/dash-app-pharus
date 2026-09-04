@@ -105,6 +105,50 @@ export function advisorField(advisors = []) {
   };
 }
 
+export function originField() {
+  return {
+    id: "filter-csat-origin",
+    key: "origin",
+    kind: "select",
+    label: "Origem",
+    options: [
+      { value: "all", label: "Todas" },
+      { value: "meetings", label: "Reuniões" },
+      { value: "platform", label: "Plataforma / Telas" },
+    ],
+  };
+}
+
+export function ratingField() {
+  return {
+    id: "filter-csat-rating",
+    key: "rating",
+    kind: "select",
+    label: "Nota",
+    options: [
+      { value: "all", label: "Todas" },
+      { value: "5", label: "5 estrelas" },
+      { value: "4", label: "4 estrelas" },
+      { value: "3", label: "3 estrelas" },
+      { value: "2", label: "2 estrelas" },
+      { value: "1", label: "1 estrela" },
+    ],
+  };
+}
+
+export function screenField(screens = []) {
+  return {
+    id: "filter-csat-screen",
+    key: "screen",
+    kind: "select",
+    label: "Tela",
+    options: [
+      { value: "all", label: "Todas" },
+      ...(screens || []).map((item) => ({ value: item.key, label: item.title })),
+    ],
+  };
+}
+
 export function PAGE_FILTERS() {
   return {
     visao_geral: [periodField()],
@@ -124,6 +168,7 @@ export function PAGE_FILTERS() {
     formularios: [searchField(), periodField(), advisorField()],
     jornada: [searchField(), advisorField()],
     pagamentos: [searchField(), periodField(), advisorField()],
+    csat: [searchField(), periodField(), originField(), ratingField(), screenField(), advisorField()],
     qualidade: [periodField()],
     utilizacao_app: [periodField()],
   };

@@ -1,6 +1,6 @@
 import { drawerShell, openEntityDrawer } from "./entity-drawer.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
-import { formatCurrencyExact, formatDate, formatDateTime, formatNumber } from "../utils/format.mjs";
+import { formatCurrencyExact, formatDate, formatDateTime, formatDecimal, formatNumber } from "../utils/format.mjs";
 import { statusBadge, tierBadge, yesNoBadge } from "./status-badge.mjs";
 
 function dl(items) {
@@ -150,6 +150,44 @@ export function openJourneyDrawer(row) {
         { label: "Jornada iniciada", value: yesNoBadge(row.hasJourney) },
         { label: "Início da jornada", value: formatDate(row.journeyStartedAt) },
         { label: "Conclusão", value: formatDate(row.journeyCompletedAt) },
+      ]),
+    }),
+  );
+}
+
+export function openCsatDrawer(row) {
+  if (!row) return;
+  const score = row.score == null ? "Não informado" : `${formatDecimal(row.score, { digits: 1 })} de 5`;
+  const meetingItems = row.origin === "meetings"
+    ? [
+        { label: "Reunião", value: escapeHtml(row.meetingType || row.subject || "Não informado") },
+        { label: "Tipo da reunião", value: escapeHtml(row.meetingType || "Não informado") },
+        row.advisor ? { label: "Responsável / EP", value: escapeHtml(row.advisor) } : null,
+      ]
+    : [
+        { label: "Tela", value: escapeHtml(row.screenTitle || row.subject || "Não informado") },
+        row.journeyStep ? { label: "Etapa", value: escapeHtml(row.journeyStep) } : null,
+        row.advisor ? { label: "Responsável / EP", value: escapeHtml(row.advisor) } : null,
+      ];
+  openEntityDrawer(
+    drawerShell({
+      eyebrow: row.origin === "meetings" ? "CSAT da reunião" : "CSAT da plataforma",
+      title: escapeHtml(row.clientName || row.clientId || "Avaliação"),
+      subtitle: escapeHtml(row.originLabel || row.origin),
+      body: dl([
+        row.officialClient || row.clientEmail
+          ? { label: "Cliente", value: escapeHtml(row.clientEmail || row.clientName) }
+          : { label: "Cliente", value: escapeHtml(row.clientName || "Sem vínculo de nome") },
+        ...meetingItems,
+        { label: "Nota", value: score },
+        (row.positivePoints || []).length
+          ? { label: "Pontos positivos", value: escapeHtml(row.positivePoints.join(", ")) }
+          : null,
+        (row.improvementPoints || []).length
+          ? { label: "Pontos de melhoria", value: escapeHtml(row.improvementPoints.join(", ")) }
+          : null,
+        row.comment ? { label: "Comentário", value: escapeHtml(row.comment) } : null,
+        { label: "Data", value: formatDateTime(row.createdAt) },
       ]),
     }),
   );
