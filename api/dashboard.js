@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     return;
   }
   try {
-    sendJson(res, 200, await builder(), { "Cache-Control": "private, max-age=300" });
+    sendJson(res, 200, await builder());
   } catch (error) {
     console.error(`[dashboard:${domain}]`, error);
     sendJson(res, 503, { error: "Fonte de dados temporariamente indisponível.", code: error?.code || "DOMAIN_ERROR" });

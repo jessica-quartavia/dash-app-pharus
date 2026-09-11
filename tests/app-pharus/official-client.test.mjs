@@ -77,6 +77,7 @@ describe("isOfficialPharusClient", () => {
           id: "u1",
           email: "ok@email.com",
           created_at: "2026-08-01T12:00:00.000Z",
+          last_sign_in_at: "2026-08-10T09:00:00.000Z",
           app_metadata: { role: "member" },
           user_metadata: { name: "Ana" },
         },
@@ -85,5 +86,6 @@ describe("isOfficialPharusClient", () => {
     const user = normalizeAuthAdminUser(parsed[0]);
     assert.equal(isOfficialPharusClient(user), true);
     assert.equal(user.raw_app_meta_data.role, "member");
+    assert.equal(user.last_sign_in_at, "2026-08-10T09:00:00.000Z");
   });
 });

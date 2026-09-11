@@ -15,6 +15,7 @@ export function mountPage({
   filterNote = "Todos os indicadores desta página respeitam os filtros.",
   resolveFields = null,
   preserveContentOnReload = false,
+  afterRender = null,
 }) {
   const baseFields = (PAGE_FILTERS()[pageId] || []).filter(
     (field) => field.key !== "advisor" || (field.options || []).length > 1,
@@ -26,6 +27,7 @@ export function mountPage({
     fields: baseFields,
     resolveFields,
     lastFieldSignature: "",
+    afterRender,
   });
 
   document.addEventListener("page:navigate", (event) => {
@@ -52,6 +54,7 @@ function fieldSignature(fields = []) {
 async function refresh(pageId, { load, render, filterNote, force = false, preserveContentOnReload = false }) {
   const state = pageState.get(pageId);
   if (!state) return;
+  const afterRender = state.afterRender;
   const filtersEl = document.getElementById("page-filters");
   const contentEl = document.getElementById("page-content");
   if (!filtersEl || !contentEl) return;
@@ -133,6 +136,7 @@ async function refresh(pageId, { load, render, filterNote, force = false, preser
     contentEl.innerHTML = render(data, state.filters);
     contentEl.dataset.pageId = pageId;
     bindExpandableChartLists(contentEl);
+    afterRender?.(contentEl, data, state.filters);
     contentEl.querySelector("[data-page-retry]")?.addEventListener("click", () => {
       void refresh(pageId, { load, render, filterNote, force: true });
     });

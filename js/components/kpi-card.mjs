@@ -12,6 +12,9 @@ export function kpiCard(label, value, note, options = {}) {
   const noteHtml = note
     ? `<div class="kpi-note">${options.tone ? tone : escapeHtml(note)}</div>`
     : "";
+  const insightHtml = options.insight
+    ? `<p class="kpi-insight">${escapeHtml(options.insight)}</p>`
+    : "";
   const valueHtml = options.loading
     ? `<span class="ui-skeleton ui-skeleton-value"></span>`
     : value;
@@ -19,6 +22,7 @@ export function kpiCard(label, value, note, options = {}) {
     <div class="kpi-label">${escapeHtml(label)}</div>
     <div class="kpi-value">${valueHtml}</div>
     ${noteHtml}
+    ${insightHtml}
   </article>`;
 }
 

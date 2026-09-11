@@ -28,6 +28,25 @@ const expectedSections = [
   "qualidade-dados",
 ];
 
+test("métricas de velocidade da jornada ficam na página Jornada", () => {
+  const visao = METRICS_DOCUMENTATION.find((section) => section.id === "visao-geral");
+  const jornada = METRICS_DOCUMENTATION.find((section) => section.id === "jornada");
+  const names = (section) => section.metrics.map((metric) => metric.name);
+  assert.deepEqual(
+    names(jornada).filter((name) =>
+      /Tempo até Rota Patrimonial|Tempo até Ativação das Engrenagens|Tempo até Central de Inteligência|Nunca acessaram/.test(name),
+    ),
+    [
+      "Tempo até Rota Patrimonial",
+      "Tempo até Ativação das Engrenagens",
+      "Tempo até Central de Inteligência",
+      "Nunca acessaram",
+    ],
+  );
+  assert.equal(names(visao).includes("Tempo até Rota Patrimonial"), false);
+  assert.equal(names(visao).includes("Nunca acessaram"), false);
+});
+
 test("Documentação é a última página da navegação", () => {
   assert.equal(PAGES.at(-1)?.id, "documentacao");
   assert.equal(PAGES.at(-1)?.implemented, true);

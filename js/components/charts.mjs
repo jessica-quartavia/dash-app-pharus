@@ -1,6 +1,6 @@
 import { escapeHtml } from "../utils/escape.mjs";
 import { sortDistributionUnknownLast } from "../utils/sort.mjs";
-import { formatCurrencyCompact, formatCurrencyExact, formatDecimal, formatNumber, formatPercent } from "../utils/format.mjs";
+import { formatCurrencyCompact, formatCurrencyExact, formatDecimal, formatNumber, formatPercent, percentOf } from "../utils/format.mjs";
 import { EXPANDABLE_CHART_LIMIT, renderExpandableChartList } from "./expandable-chart-list.mjs";
 import { bindFloatingTooltips } from "./floating-tooltip.mjs";
 
@@ -304,6 +304,67 @@ export function dualColumns(series, { primaryKey, secondaryKey, primaryLabel, se
     .join("");
   return `<div class="dual-bars">${cols}</div>
     <p class="chart-legend-note"><span><i class="swatch"></i>${escapeHtml(primaryLabel)}</span><span><i class="swatch secondary"></i>${escapeHtml(secondaryLabel)}</span></p>`;
+}
+
+export function speedHBars(items) {
+  const list = items || [];
+  if (!list.length) return `<p class="placeholder-note">Sem dados para o recorte selecionado.</p>`;
+  const max = Math.max(...list.map((item) => Number(item.displayDays) || 0), 1);
+  return `<div class="speed-hbar-list">
+    ${list
+      .map((item) => {
+        const days = item.displayDays;
+        const value = days == null ? "—" : `${formatNumber(days)} dias`;
+        const width = days == null ? 0 : Math.max((Number(days) / max) * 100, 22);
+        const reachedLabel = item.reachedCount == null
+          ? "cobertura da etapa indisponível"
+          : Number(item.reachedCount) === 1
+            ? "1 cliente chegou à etapa"
+            : `${formatNumber(item.reachedCount)} clientes chegaram à etapa`;
+        const tooltip = `${item.label}\nMediana: ${value}\n${reachedLabel}`;
+        const fill = days == null
+          ? `<span class="speed-hbar-empty">${escapeHtml(value)}</span>`
+          : `<span class="speed-hbar-fill" style="width:${width}%"><em>${escapeHtml(value)}</em></span>`;
+        return `<div class="speed-hbar" tabindex="0" data-ui-tooltip="${escapeHtml(tooltip)}" aria-label="${escapeHtml(tooltip.replace(/\n/g, ", "))}">
+          <div class="speed-hbar-label">${escapeHtml(item.label)}</div>
+          <div class="speed-hbar-track">${fill}</div>
+        </div>`;
+      })
+      .join("")}
+  </div>`;
+}
+
+export function stackedShareBar(items) {
+  const list = items || [];
+  if (!list.length) return `<p class="placeholder-note">Sem dados para o recorte selecionado.</p>`;
+  if (list.some((item) => item.count == null)) {
+    return `<p class="placeholder-note">Acesso à plataforma indisponível.</p>`;
+  }
+  const total = list.reduce((sum, item) => sum + (Number(item.count) || 0), 0);
+  const segments = list
+    .map((item) => {
+      const count = Number(item.count) || 0;
+      const percent = item.percent != null ? item.percent : percentOf(count, total);
+      const width = total ? (count / total) * 100 : 0;
+      const tooltip = `${item.label}: ${formatNumber(count)} · ${formatPercent(percent)}`;
+      return `<span class="stack-share-seg is-${escapeHtml(item.key || "item")}" style="width:${width}%" data-ui-tooltip="${escapeHtml(tooltip)}" title="${escapeHtml(tooltip)}"></span>`;
+    })
+    .join("");
+  const legend = list
+    .map((item) => {
+      const count = Number(item.count) || 0;
+      const percent = item.percent != null ? item.percent : percentOf(count, total);
+      return `<div class="stack-share-legend-item">
+        <i class="is-${escapeHtml(item.key || "item")}"></i>
+        <span>${escapeHtml(item.label)}</span>
+        <strong>${formatNumber(count)} · ${formatPercent(percent)}</strong>
+      </div>`;
+    })
+    .join("");
+  return `<div class="stack-share">
+    <div class="stack-share-track">${segments}</div>
+    <div class="stack-share-legend">${legend}</div>
+  </div>`;
 }
 
 export function funnelRows(items) {

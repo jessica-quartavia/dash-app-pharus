@@ -8,6 +8,7 @@ import {
   presentPaymentsPage,
   presentWealthPage,
 } from "../../lib/app-pharus/domain-presenters.mjs";
+import { buildJourneySpeedSource } from "../../lib/app-pharus/journey-speed.mjs";
 import { defaultTableState, renderInteractiveTablePanel } from "../../js/components/interactive-table.mjs";
 import { formatKpiValue } from "../../js/lib/kpi-value.mjs";
 
@@ -19,14 +20,29 @@ const onlyBeta = { period: "all", search: "beta" };
 
 describe("apresentadores das páginas de domínio", () => {
   it("aplica a busca global da FilterBar a KPIs, gráficos e tabelas", () => {
-    const journey = presentJourneyPage({ clients, progress: [
-      { user_id: "a", step: "complete", created_at: "2026-01-01", completed_at: "2026-01-02" },
-      { user_id: "b", step: "intelligence_center", created_at: "2026-01-03", completed_at: null },
-    ], stages: [{ user_id: "a", current_stage: "Onboarding" }, { user_id: "b", current_stage: "Central" }] }, onlyBeta);
+    const journey = presentJourneyPage({
+      clients,
+      progress: [
+        { user_id: "a", step: "complete", created_at: "2026-01-01", completed_at: "2026-01-02" },
+        { user_id: "b", step: "intelligence_center", created_at: "2026-01-03", completed_at: null },
+      ],
+      stages: [{ user_id: "a", current_stage: "Onboarding" }, { user_id: "b", current_stage: "Central" }],
+      journeySpeedSource: buildJourneySpeedSource({
+        users: clients.map((client) => ({ ...client, created_at: client.registeredAt, last_sign_in_at: "2026-01-02" })),
+        catalog: [{ id: "m-rota", meeting_title: "Rota Patrimonial", meeting_slug: "wealth-route" }],
+        meetings: [
+          { id: "s1", user_id: "a", meeting_id: "m-rota", status: "completed", start_time: "2026-01-16T00:00:00.000Z" },
+          { id: "s2", user_id: "b", meeting_id: "m-rota", status: "completed", start_time: "2026-01-11T00:00:00.000Z" },
+        ],
+      }),
+    }, onlyBeta);
     assert.equal(journey.kpis[0].value, 1);
     assert.equal(journey.kpis[2].value, 1);
     assert.equal(journey.rows.length, 1);
     assert.equal(journey.byStage.reduce((sum, item) => sum + item.count, 0), 1);
+    assert.equal(journey.journeySpeed.population, 1);
+    assert.equal(journey.journeySpeed.stages[0].reachedCount, 1);
+    assert.equal(journey.journeySpeed.stages[0].displayDays, 10);
 
     const meetings = presentMeetingsPage({ clients, rows: [
       { id: "m1", clientId: "a", date: "2026-01-10", status: "completed", type: "Rota", score: 5, highlights: [], attentionPoints: [] },
@@ -115,6 +131,52 @@ describe("apresentadores das páginas de domínio", () => {
     assert.equal(average.kind, "decimal");
     assert.equal(average.digits, 0);
     assert.equal(formatKpiValue(average), "7");
+  });
+
+  it("não inventa zero de velocidade quando a fonte não veio no dataset da Jornada", () => {
+    const missing = presentJourneyPage({ clients, progress: [], stages: [] }, { period: "all" });
+    assert.equal(missing.kpis[0].value, 2);
+    assert.equal(missing.journeySpeed.status, "unavailable");
+    assert.equal(missing.journeySpeed.population, null);
+    assert.notEqual(missing.journeySpeed.kpis[0].value, 0);
+
+    const present = presentJourneyPage({
+      clients,
+      progress: [],
+      stages: [],
+      journeySpeedSource: buildJourneySpeedSource({
+        users: clients.map((client) => ({ ...client, created_at: client.registeredAt, last_sign_in_at: "2026-01-02" })),
+        catalog: [{ id: "m-rota", meeting_title: "Rota Patrimonial", meeting_slug: "wealth-route" }],
+        meetings: [
+          { id: "s1", user_id: "a", meeting_id: "m-rota", status: "completed", start_time: "2026-01-16T00:00:00.000Z" },
+          { id: "s2", user_id: "b", meeting_id: "m-rota", status: "completed", start_time: "2026-01-11T00:00:00.000Z" },
+        ],
+      }),
+    }, { period: "all" });
+    assert.equal(present.journeySpeed.status, "ok");
+    assert.equal(present.journeySpeed.population, 2);
+    assert.equal(present.journeySpeed.stages[0].reachedCount, 2);
+  });
+
+  it("a Jornada não aplica período na velocidade porque a página não tem esse filtro", () => {
+    const source = buildJourneySpeedSource({
+      users: clients.map((client) => ({ ...client, created_at: client.registeredAt, last_sign_in_at: "2026-01-02" })),
+      catalog: [{ id: "m-rota", meeting_title: "Rota Patrimonial", meeting_slug: "wealth-route" }],
+      meetings: [
+        { id: "s1", user_id: "a", meeting_id: "m-rota", status: "completed", start_time: "2026-01-16T00:00:00.000Z" },
+        { id: "s2", user_id: "b", meeting_id: "m-rota", status: "completed", start_time: "2026-01-11T00:00:00.000Z" },
+      ],
+    });
+    const presented = presentJourneyPage({
+      clients,
+      progress: [],
+      stages: [],
+      journeySpeedSource: source,
+    }, { period: "last_30", startDate: "2026-08-01", endDate: "2026-08-31" });
+    assert.equal(presented.kpis[0].value, 0);
+    assert.equal(presented.journeySpeed.status, "ok");
+    assert.equal(presented.journeySpeed.population, 2);
+    assert.equal(presented.journeySpeed.stages[0].reachedCount, 2);
   });
 });
 

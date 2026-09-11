@@ -1,5 +1,7 @@
 import { chartCard, chartGrid } from "../components/chart-card.mjs";
 import { donut, funnelRows, hBars } from "../components/charts.mjs";
+import { bindFloatingTooltips } from "../components/floating-tooltip.mjs";
+import { renderJourneySpeedSection } from "../components/journey-speed-section.mjs";
 import { openJourneyDrawer } from "../components/domain-drawers.mjs";
 import { mountInteractiveTable } from "../components/interactive-table.mjs";
 import { kpiCard, kpiRow } from "../components/kpi-card.mjs";
@@ -38,6 +40,7 @@ export function bootJornada() {
   mountPage({
     pageId: "jornada",
     load: getJourneyPage,
+    afterRender: (root) => bindFloatingTooltips(root),
     render: (data) => {
       queueMicrotask(() => journeyTable.mount({ rows: data.rows || [] }));
       return `
@@ -54,13 +57,24 @@ export function bootJornada() {
         body: chartGrid([
           chartCard({ title: "Funil da jornada", subtitle: "Percentual sobre a população inicial", body: funnelRows(data.funnel), featured: true }),
           chartCard({ title: "Distribuição atual", subtitle: "Em que estágio estão os clientes agora", body: donut(data.byStage) }),
-          chartCard({ title: "Tempo entre etapas", subtitle: "Mediana em dias · pares cronológicos válidos", body: hBars(data.transitions, { preserveOrder: true }) }),
-          chartCard({ title: "Saúde operacional", subtitle: "Faixas cumulativas desde o último avanço", body: hBars(data.health, { preserveOrder: true }) }),
         ]),
+      })}
+      ${renderJourneySpeedSection(data.journeySpeed, { id: "sec-journey-speed", title: "3. Velocidade da jornada" })}
+      ${sectionBlock({
+        id: "sec-journey-transitions",
+        title: "4. Tempo entre etapas",
+        lead: "Mediana em dias entre marcos consecutivos da jornada no App. Somente pares cronológicos válidos.",
+        body: hBars(data.transitions, { preserveOrder: true }),
+      })}
+      ${sectionBlock({
+        id: "sec-journey-health",
+        title: "5. Saúde operacional",
+        lead: "Faixas cumulativas desde o último avanço, entre quem ainda não chegou à Central de Inteligência.",
+        body: hBars(data.health, { preserveOrder: true }),
       })}
       ${sectionBlock({
         id: "sec-journey-table",
-        title: "3. Posição por cliente",
+        title: "6. Posição por cliente",
         lead: "Clique em um cliente para ver histórico resumido da jornada.",
         body: `<div id="journey-table-host"><p class="placeholder-note">Carregando tabela…</p></div>`,
       })}

@@ -61,8 +61,9 @@ export function bootVisaoGeral() {
         ${sectionBlock({
           id: "sec-journey",
           title: "3. Avanço da jornada",
+          lead: "Quantos clientes da base oficial chegaram a cada marco. Esta seção não mede tempo.",
           body: chartGrid([
-            chartCard({ title: "Funil resumido", body: funnelRows(data.journey?.funnel || []), featured: true }),
+            chartCard({ title: "Funil da jornada", body: funnelRows(data.journey?.funnel || []), featured: true }),
             chartCard({ title: "Distribuição atual", body: donut(data.journey?.distribution || []) }),
           ]),
         })}
