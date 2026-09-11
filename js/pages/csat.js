@@ -50,6 +50,7 @@ function screenRanking(items) {
 const feedbackTable = mountInteractiveTable("csat-feedback-table-host", {
   defaultState: { sortKey: "createdAt", sortDir: "desc", pageSize: 25 },
   rowIdKey: "id",
+  exportName: "csat",
   title: (rows) => `${formatNumber(rows.length)} feedbacks`,
   columns: [
     { key: "clientName", label: "Cliente", sortable: true, value: (row) => escapeHtml(row.clientName || "—") },
@@ -66,6 +67,15 @@ const feedbackTable = mountInteractiveTable("csat-feedback-table-host", {
     { key: "comment", label: "Feedback", value: (row) => escapeHtml((row.comment || row.positivePoints?.[0] || row.improvementPoints?.[0] || "—")) },
     { key: "createdAt", label: "Data", sortable: true, value: (row) => formatDate(row.createdAt) },
     { key: "advisor", label: "EP", sortable: true, value: (row) => escapeHtml(row.advisor || "—") },
+  ],
+  exportColumns: [
+    { key: "clientName", label: "Cliente", type: "text" },
+    { key: "originLabel", label: "Origem", type: "text" },
+    { key: "subject", label: "Tela / Reunião", type: "text" },
+    { key: "score", label: "Nota", type: "decimal" },
+    { key: "comment", label: "Feedback", type: "text", get: (row) => row.comment || row.positivePoints?.[0] || row.improvementPoints?.[0] || "" },
+    { key: "createdAt", label: "Data", type: "date" },
+    { key: "advisor", label: "EP", type: "text" },
   ],
   onRowClick: (row) => openCsatDrawer(row),
 });

@@ -13,6 +13,7 @@ import { formatDate, formatDecimal, formatNumber } from "../utils/format.mjs";
 
 const meetingsTable = mountInteractiveTable("meetings-table-host", {
   defaultState: { sortKey: "date", sortDir: "desc" },
+  exportName: "reunioes",
   searchPlaceholder: "Buscar cliente, tipo ou responsável",
   title: (rows) => `${formatNumber(rows.length)} reuniões`,
   columns: [
@@ -25,6 +26,17 @@ const meetingsTable = mountInteractiveTable("meetings-table-host", {
     { key: "highlights", label: "Destaques", value: (row) => escapeHtml(row.highlights?.join(", ") || "Não informado") },
     { key: "attentionPoints", label: "Pontos de atenção", value: (row) => escapeHtml(row.attentionPoints?.join(", ") || "Não informado") },
     { key: "outputs", label: "Outputs", sortable: true, numeric: true, value: (row) => formatNumber(row.outputs) },
+  ],
+  exportColumns: [
+    { key: "clientName", label: "Cliente", type: "text" },
+    { key: "type", label: "Tipo", type: "text" },
+    { key: "date", label: "Data", type: "date" },
+    { key: "status", label: "Status", type: "text" },
+    { key: "advisor", label: "Responsável", type: "text" },
+    { key: "score", label: "Avaliação", type: "decimal" },
+    { key: "highlights", label: "Destaques", type: "text", get: (row) => row.highlights?.join(", ") || "Não informado" },
+    { key: "attentionPoints", label: "Pontos de atenção", type: "text", get: (row) => row.attentionPoints?.join(", ") || "Não informado" },
+    { key: "outputs", label: "Outputs", type: "number" },
   ],
   onRowClick: (row) => openMeetingDrawer(row),
 });

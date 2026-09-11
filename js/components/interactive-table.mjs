@@ -1,6 +1,8 @@
 import { paginateRows, paginationBar } from "./table-pagination.mjs";
+import { bindTableExport, renderTableExportControls } from "./table-export.mjs";
 import { matchesSearch } from "../lib/filters/apply.mjs";
 import { escapeHtml } from "../utils/escape.mjs";
+import { resolveExportColumns } from "../lib/export-table.mjs";
 
 export function defaultTableState(overrides = {}) {
   return {
@@ -53,6 +55,12 @@ export function filterTableRows(rows, search, { searchFn } = {}) {
   return (rows || []).filter((row) => matchesSearch(row, search));
 }
 
+export function rowsForExport(rows, columns, state, { hideSearch = true, searchFn } = {}) {
+  const filtered = hideSearch ? [...(rows || [])] : filterTableRows(rows, state?.search, { searchFn });
+  if (!state?.sortKey) return filtered;
+  return sortTableRows(filtered, columns, state.sortKey, state.sortDir);
+}
+
 export function renderInteractiveTablePanel({
   rows,
   columns,
@@ -65,13 +73,18 @@ export function renderInteractiveTablePanel({
   panelClass = "interactive-table-panel",
   recorteTotal,
   hideSearch = true,
+  searchFn,
+  exportName = "tabela",
+  exportColumns: _exportColumns,
+  exportLoading = false,
 }) {
-  const filtered = hideSearch ? rows || [] : filterTableRows(rows, state.search);
+  const filtered = hideSearch ? rows || [] : filterTableRows(rows, state.search, { searchFn });
   const sorted = state.sortKey
     ? sortTableRows(filtered, columns, state.sortKey, state.sortDir)
     : filtered;
   const page = paginateRows(sorted, { page: state.page, pageSize: state.pageSize });
   const totalLabel = recorteTotal ?? filtered.length;
+  const exportCount = sorted.length;
 
   const head = columns
     .map((col) => {
@@ -107,14 +120,17 @@ export function renderInteractiveTablePanel({
           <tbody>${body}</tbody>
         </table></div>`;
 
-  return `<div class="${panelClass}" data-recorte="${totalLabel}">
+  return `<div class="${panelClass}" data-recorte="${totalLabel}" data-export-name="${escapeHtml(exportName)}">
+    <div class="table-panel-head">
+      ${title ? `<h3>${escapeHtml(title)}</h3>` : `<h3 class="sr-only">Tabela</h3>`}
+      ${renderTableExportControls({ count: exportCount, loading: exportLoading })}
+    </div>
     ${hideSearch ? "" : `<div class="table-toolbar">
       <label class="table-search">
         <span class="sr-only">Buscar na tabela</span>
         <input type="search" class="input" placeholder="${escapeHtml(searchPlaceholder)}" value="${escapeHtml(state.search || "")}" data-table-search />
       </label>
     </div>`}
-    ${title ? `<div class="table-panel-head"><h3>${escapeHtml(title)}</h3></div>` : ""}
     <div class="interactive-table-body">${table}</div>
     ${paginationBar({ page: page.page, pageSize: page.pageSize, total: page.total })}
   </div>`;
@@ -137,6 +153,10 @@ export function bindInteractiveTable(host, options) {
     panelClass,
     recorteTotal,
     hideSearch = true,
+    searchFn,
+    exportName = "tabela",
+    exportColumns,
+    exportLoading = false,
   } = options;
 
   const refresh = () => {
@@ -152,6 +172,10 @@ export function bindInteractiveTable(host, options) {
       panelClass,
       recorteTotal,
       hideSearch,
+      searchFn,
+      exportName,
+      exportColumns,
+      exportLoading,
     });
     bindInteractiveTable(host, options);
   };
@@ -164,6 +188,13 @@ export function bindInteractiveTable(host, options) {
       refresh();
     });
   }
+
+  bindTableExport(host, {
+    getRows: () => rowsForExport(rows, columns, state, { hideSearch, searchFn }),
+    columns: resolveExportColumns(exportColumns, columns),
+    fileSlug: exportName,
+    loading: exportLoading,
+  });
 
   host.querySelectorAll("[data-sort-key]").forEach((th) => {
     th.addEventListener("click", () => {
@@ -246,6 +277,10 @@ export function mountInteractiveTable(hostId, config) {
       emptyText: config.emptyText,
       recorteTotal: config.recorteTotal?.(tableRows),
       hideSearch: config.hideSearch,
+      searchFn: config.searchFn,
+      exportName: config.exportName,
+      exportColumns: config.exportColumns,
+      exportLoading: config.exportLoading,
     });
     bindInteractiveTable(el, {
       rows: tableRows,
@@ -259,6 +294,9 @@ export function mountInteractiveTable(hostId, config) {
       recorteTotal: config.recorteTotal?.(tableRows),
       title: config.title?.(tableRows, tableState),
       hideSearch: config.hideSearch,
+      exportName: config.exportName,
+      exportColumns: config.exportColumns,
+      exportLoading: config.exportLoading,
       onRowClick: config.onRowClick,
       onStateChange: (next) => {
         tableState = next;

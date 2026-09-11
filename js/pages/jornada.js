@@ -12,6 +12,7 @@ import { formatDate, formatNumber, formatPercent } from "../utils/format.mjs";
 
 const journeyTable = mountInteractiveTable("journey-table-host", {
   defaultState: { sortKey: "name", sortDir: "asc" },
+  exportName: "jornada",
   searchPlaceholder: "Buscar cliente ou etapa",
   title: (rows) => `${rows.length} clientes`,
   columns: [
@@ -21,6 +22,14 @@ const journeyTable = mountInteractiveTable("journey-table-host", {
     { key: "journeyStartedAt", label: "Data de início", sortable: true, value: (row) => formatDate(row.journeyStartedAt) },
     { key: "lastActivityAt", label: "Última atividade", sortable: true, value: (row) => formatDate(row.lastActivityAt) },
     { key: "daysInStage", label: "Tempo na etapa", sortable: true, numeric: true, sortValue: (row) => row.daysInStage ?? -1, value: (row) => (row.daysInStage == null ? "—" : `${formatNumber(row.daysInStage)} dias`) },
+  ],
+  exportColumns: [
+    { key: "name", label: "Cliente", type: "text" },
+    { key: "journeyStage", label: "Etapa atual", type: "text", get: (row) => row.journeyStage || "Não informado" },
+    { key: "journeyProgress", label: "Progresso", type: "percent" },
+    { key: "journeyStartedAt", label: "Data de início", type: "date" },
+    { key: "lastActivityAt", label: "Última atividade", type: "date" },
+    { key: "daysInStage", label: "Tempo na etapa (dias)", type: "number" },
   ],
   onRowClick: (row) => openJourneyDrawer(row),
 });

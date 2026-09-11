@@ -12,12 +12,19 @@ import { formatCurrencyExact } from "../utils/format.mjs";
 
 const wealthTable = mountInteractiveTable("wealth-table-host", {
   defaultState: { sortKey: "assets", sortDir: "desc" },
+  exportName: "patrimonio",
   title: (rows) => `${rows.length} clientes no recorte`,
   columns: [
     { key: "name", label: "Cliente", sortable: true, value: (row) => escapeHtml(row.name) },
     { key: "assets", label: "Ativos", sortable: true, numeric: true, sortValue: (row) => row.wealth?.assets || 0, value: (row) => formatCurrencyExact(row.wealth?.assets) },
     { key: "liabilities", label: "Passivos", sortable: true, numeric: true, sortValue: (row) => row.wealth?.liabilities || 0, value: (row) => formatCurrencyExact(row.wealth?.liabilities) },
     { key: "net", label: "Patrimônio líquido", sortable: true, numeric: true, sortValue: (row) => row.wealth?.net || 0, value: (row) => formatCurrencyExact(row.wealth?.net) },
+  ],
+  exportColumns: [
+    { key: "name", label: "Cliente", type: "text" },
+    { key: "assets", label: "Ativos", type: "currency", get: (row) => row.wealth?.assets },
+    { key: "liabilities", label: "Passivos", type: "currency", get: (row) => row.wealth?.liabilities },
+    { key: "net", label: "Patrimônio líquido", type: "currency", get: (row) => row.wealth?.net },
   ],
   onRowClick: (row) => openWealthDrawer(row),
 });

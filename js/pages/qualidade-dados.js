@@ -10,6 +10,7 @@ import { coverageLabel, formatDate, formatNumber, formatPercent } from "../utils
 
 const qualityTable = mountInteractiveTable("quality-table-host", {
   defaultState: { sortKey: "domain", sortDir: "asc" },
+  exportName: "qualidade-dados",
   searchPlaceholder: "Buscar domínio",
   title: (rows) => `${rows.length} domínios`,
   rowIdKey: "id",
@@ -21,6 +22,15 @@ const qualityTable = mountInteractiveTable("quality-table-host", {
     { key: "withoutData", label: "Sem dado", sortable: true, numeric: true, value: (row) => formatNumber(row.withoutData) },
     { key: "updatedAt", label: "Atualização", sortable: true, value: (row) => formatDate(row.updatedAt) },
     { key: "tone", label: "Status", sortable: true, value: (row) => statusBadge(coverageLabel(row.tone)) },
+  ],
+  exportColumns: [
+    { key: "domain", label: "Domínio", type: "text" },
+    { key: "source", label: "Fonte", type: "text" },
+    { key: "percent", label: "Cobertura", type: "percent" },
+    { key: "withData", label: "Com dado", type: "number" },
+    { key: "withoutData", label: "Sem dado", type: "number" },
+    { key: "updatedAt", label: "Atualização", type: "date" },
+    { key: "tone", label: "Status", type: "text", get: (row) => coverageLabel(row.tone) },
   ],
   onRowClick: (row) => openQualityDrawer(row),
 });

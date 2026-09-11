@@ -18,6 +18,7 @@ import { advisorField, periodField, searchField } from "../lib/filters/contracts
 const clientTable = mountInteractiveTable("mech-client-table-host", {
   defaultState: { sortKey: "mechanismsImplemented", sortDir: "desc" },
   hideSearch: true,
+  exportName: "mecanismos",
   title: (rows) => `${formatNumber(rows.length)} clientes no recorte`,
   columns: [
     {
@@ -47,6 +48,13 @@ const clientTable = mountInteractiveTable("mech-client-table-host", {
       sortable: true,
       value: (row) => formatDate(row.lastMechanismAt),
     },
+  ],
+  exportColumns: [
+    { key: "name", label: "Cliente", type: "text" },
+    { key: "email", label: "E-mail", type: "text" },
+    { key: "mechanismsImplemented", label: "Implementados", type: "number" },
+    { key: "firstMechanismAt", label: "Primeiro mecanismo", type: "date" },
+    { key: "lastMechanismAt", label: "Último mecanismo", type: "date" },
   ],
   onRowClick: (client) => openMechanismDrawer(client),
 });

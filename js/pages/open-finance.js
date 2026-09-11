@@ -13,6 +13,7 @@ import { formatDateTime, formatNumber } from "../utils/format.mjs";
 
 const ofTable = mountInteractiveTable("of-table-host", {
   defaultState: { sortKey: "clientName", sortDir: "asc" },
+  exportName: "open-finance",
   title: (rows) => `${formatNumber(rows.length)} conexões`,
   rowIdKey: "id",
   columns: [
@@ -21,6 +22,13 @@ const ofTable = mountInteractiveTable("of-table-host", {
     { key: "result", label: "Resultado", sortable: true, value: (row) => statusBadge(row.result || row.status) },
     { key: "accounts", label: "Contas", sortable: true, numeric: true, value: (row) => formatNumber(row.accounts) },
     { key: "lastSyncAt", label: "Última sincronização", sortable: true, value: (row) => formatDateTime(row.lastSyncAt) },
+  ],
+  exportColumns: [
+    { key: "clientName", label: "Cliente", type: "text" },
+    { key: "institution", label: "Instituição", type: "text" },
+    { key: "result", label: "Resultado", type: "text", get: (row) => row.result || row.status || "" },
+    { key: "accounts", label: "Contas", type: "number" },
+    { key: "lastSyncAt", label: "Última sincronização", type: "datetime" },
   ],
   onRowClick: (row) => openOpenFinanceDrawer(row),
 });

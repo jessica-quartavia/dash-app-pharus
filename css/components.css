@@ -1297,7 +1297,8 @@ html[data-theme="dark"] .theme-toggle-icon-moon {
   display: flex;
   justify-content: space-between;
   gap: var(--space-2);
-  align-items: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
   margin-bottom: var(--space-2);
 }
 
@@ -1361,6 +1362,83 @@ html[data-theme="dark"] .theme-toggle-icon-moon {
   display: flex;
   justify-content: flex-end;
   margin-bottom: var(--space-2);
+}
+
+.table-panel-head h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.table-export {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.table-export-desktop {
+  display: flex;
+  gap: 8px;
+}
+
+.table-export-btn {
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  min-height: 36px;
+}
+
+.table-export-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.table-export-menu {
+  display: none;
+  position: relative;
+}
+
+.table-export-menu summary {
+  list-style: none;
+}
+
+.table-export-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.table-export-menu-list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 160px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  z-index: 8;
+  display: grid;
+  gap: 4px;
+}
+
+.table-export-menu-list .table-export-btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.table-export-menu.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .table-export-desktop {
+    display: none;
+  }
+
+  .table-export-menu {
+    display: block;
+  }
 }
 
 .table-search {

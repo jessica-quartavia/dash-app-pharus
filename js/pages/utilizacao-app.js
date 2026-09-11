@@ -17,17 +17,26 @@ let retrying = false;
 
 const channelInsightsTable = mountInteractiveTable("expo-channel-insights-table-host", {
   defaultState: { sortKey: "embeddedUsers", sortDir: "desc" }, rowIdKey: "id",
+  exportName: "utilizacao-channel-insights",
   title: (rows) => `${formatNumber(rows.length)} combinações de channel e runtime`,
   columns: [
     { key: "channel", label: "Channel", sortable: true, value: (row) => escapeHtml(row.channel || "—") },
     { key: "runtimeVersion", label: "Runtime", sortable: true, value: (row) => `<code>${escapeHtml(String(row.runtimeVersion || "—").slice(0, 16))}</code>` },
     { key: "embeddedUsers", label: "Embedded", sortable: true, numeric: true, value: (row) => row.embeddedUsers == null ? "—" : formatNumber(row.embeddedUsers) },
     { key: "otaUsers", label: "OTA", sortable: true, numeric: true, value: (row) => row.otaUsers == null ? "—" : formatNumber(row.otaUsers) },
-  ], onRowClick: () => {},
+  ],
+  exportColumns: [
+    { key: "channel", label: "Channel", type: "text" },
+    { key: "runtimeVersion", label: "Runtime", type: "text" },
+    { key: "embeddedUsers", label: "Embedded", type: "number" },
+    { key: "otaUsers", label: "OTA", type: "number" },
+  ],
+  onRowClick: () => {},
 });
 
 const updateInsightsTable = mountInteractiveTable("expo-update-insights-table-host", {
   defaultState: { sortKey: "launchesValue", sortDir: "desc" }, rowIdKey: "id",
+  exportName: "utilizacao-update-insights",
   title: (rows) => `${formatNumber(rows.length)} recortes de updates recentes`,
   columns: [
     { key: "branch", label: "Branch", sortable: true, value: (row) => escapeHtml(row.branch || "—") },
@@ -35,21 +44,37 @@ const updateInsightsTable = mountInteractiveTable("expo-update-insights-table-ho
     { key: "uniqueUsersValue", label: "Usuários únicos", sortable: true, numeric: true, value: (row) => row.uniqueUsersValue == null ? "—" : formatNumber(row.uniqueUsersValue) },
     { key: "launchesValue", label: "Launches", sortable: true, numeric: true, value: (row) => row.launchesValue == null ? "—" : formatNumber(row.launchesValue) },
     { key: "crashRateValue", label: "Taxa de falha", sortable: true, numeric: true, value: (row) => row.crashRateValue == null ? "—" : formatPercent(row.crashRateValue) },
-  ], onRowClick: () => {},
+  ],
+  exportColumns: [
+    { key: "branch", label: "Branch", type: "text" },
+    { key: "platform", label: "Plataforma", type: "text" },
+    { key: "uniqueUsersValue", label: "Usuários únicos", type: "number" },
+    { key: "launchesValue", label: "Launches", type: "number" },
+    { key: "crashRateValue", label: "Taxa de falha", type: "percent" },
+  ],
+  onRowClick: () => {},
 });
 
 const channelRuntimeTable = mountInteractiveTable("expo-channel-runtime-table-host", {
   defaultState: { sortKey: "channel", sortDir: "asc" }, rowIdKey: "id",
+  exportName: "utilizacao-channels",
   title: (rows) => `${formatNumber(rows.length)} channels e runtimes`,
   columns: [
     { key: "channel", label: "Channel", sortable: true, value: (row) => escapeHtml(row.channel || "—") },
     { key: "branch", label: "Branch", sortable: true, value: (row) => escapeHtml(row.branch || "—") },
     { key: "runtimeVersion", label: "Runtime", sortable: true, value: (row) => `<code>${escapeHtml(String(row.runtimeVersion || "—").slice(0, 20))}</code>` },
-  ], onRowClick: () => {},
+  ],
+  exportColumns: [
+    { key: "channel", label: "Channel", type: "text" },
+    { key: "branch", label: "Branch", type: "text" },
+    { key: "runtimeVersion", label: "Runtime", type: "text" },
+  ],
+  onRowClick: () => {},
 });
 
 const performanceTable = mountInteractiveTable("expo-performance-table-host", {
   defaultState: { sortKey: "eventCount", sortDir: "desc" }, rowIdKey: "id",
+  exportName: "utilizacao-performance",
   title: (rows) => `${formatNumber(rows.length)} medições por versão e plataforma`,
   columns: [
     { key: "metricLabel", label: "Métrica", sortable: true, value: (row) => escapeHtml(row.metricLabel || row.metricName || "—") },
@@ -58,29 +83,54 @@ const performanceTable = mountInteractiveTable("expo-performance-table-host", {
     { key: "eventCount", label: "Eventos", sortable: true, numeric: true, value: (row) => row.eventCount == null ? "—" : formatNumber(row.eventCount) },
     { key: "medianSeconds", label: "Mediana", sortable: true, numeric: true, value: (row) => row.medianSeconds == null ? "—" : `${formatDecimal(row.medianSeconds, { digits: 3 })} s` },
     { key: "p90Seconds", label: "P90", sortable: true, numeric: true, value: (row) => row.p90Seconds == null ? "—" : `${formatDecimal(row.p90Seconds, { digits: 3 })} s` },
-  ], onRowClick: () => {},
+  ],
+  exportColumns: [
+    { key: "metricLabel", label: "Métrica", type: "text", get: (row) => row.metricLabel || row.metricName || "" },
+    { key: "platform", label: "Plataforma", type: "text" },
+    { key: "version", label: "Versão", type: "text" },
+    { key: "eventCount", label: "Eventos", type: "number" },
+    { key: "medianSeconds", label: "Mediana (s)", type: "decimal", digits: 3 },
+    { key: "p90Seconds", label: "P90 (s)", type: "decimal", digits: 3 },
+  ],
+  onRowClick: () => {},
 });
 
 const buildsTable = mountInteractiveTable("expo-builds-table-host", {
   defaultState: { sortKey: "createdAt", sortDir: "desc" }, rowIdKey: "id",
+  exportName: "utilizacao-builds",
   title: (rows) => `${formatNumber(rows.length)} builds recentes`,
   columns: [
     { key: "platform", label: "Plataforma", sortable: true, value: (row) => escapeHtml(row.platform || "—") },
     { key: "version", label: "Versão", sortable: true, value: (row) => escapeHtml(row.version || "—") },
     { key: "status", label: "Status", sortable: true, value: (row) => escapeHtml(row.status || "—") },
     { key: "createdAt", label: "Criado em", sortable: true, value: (row) => formatDate(row.createdAt) },
-  ], onRowClick: () => {},
+  ],
+  exportColumns: [
+    { key: "platform", label: "Plataforma", type: "text" },
+    { key: "version", label: "Versão", type: "text" },
+    { key: "status", label: "Status", type: "text" },
+    { key: "createdAt", label: "Criado em", type: "date" },
+  ],
+  onRowClick: () => {},
 });
 
 const updatesTable = mountInteractiveTable("expo-updates-table-host", {
   defaultState: { sortKey: "updatedAt", sortDir: "desc" }, rowIdKey: "id",
+  exportName: "utilizacao-updates",
   title: (rows) => `${formatNumber(rows.length)} runtimes publicados`,
   columns: [
     { key: "channel", label: "Canal", sortable: true, value: (row) => escapeHtml(row.channel || "—") },
     { key: "branch", label: "Branch", sortable: true, value: (row) => escapeHtml(row.branch || "—") },
     { key: "runtimeVersion", label: "Runtime version", sortable: true, value: (row) => `<code>${escapeHtml(String(row.runtimeVersion || "—").slice(0, 20))}</code>` },
     { key: "updatedAt", label: "Atualizado em", sortable: true, value: (row) => formatDate(row.updatedAt) },
-  ], onRowClick: () => {},
+  ],
+  exportColumns: [
+    { key: "channel", label: "Canal", type: "text" },
+    { key: "branch", label: "Branch", type: "text" },
+    { key: "runtimeVersion", label: "Runtime version", type: "text" },
+    { key: "updatedAt", label: "Atualizado em", type: "date" },
+  ],
+  onRowClick: () => {},
 });
 
 export function bindUtilizacaoApp(data) {

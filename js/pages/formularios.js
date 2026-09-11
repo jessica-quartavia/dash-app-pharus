@@ -13,6 +13,7 @@ import { formatDate, formatPercent } from "../utils/format.mjs";
 
 const formsTable = mountInteractiveTable("forms-table-host", {
   defaultState: { sortKey: "startedAt", sortDir: "desc" },
+  exportName: "formularios",
   searchPlaceholder: "Buscar cliente ou formulário",
   title: (rows) => `${rows.length} respostas`,
   rowIdKey: "id",
@@ -23,6 +24,14 @@ const formsTable = mountInteractiveTable("forms-table-host", {
     { key: "startedAt", label: "Data de início", sortable: true, value: (row) => formatDate(row.startedAt) },
     { key: "completedAt", label: "Data de conclusão", sortable: true, value: (row) => formatDate(row.completedAt) },
     { key: "progress", label: "Progresso", sortable: true, numeric: true, value: (row) => formatPercent(row.progress) },
+  ],
+  exportColumns: [
+    { key: "clientName", label: "Cliente", type: "text" },
+    { key: "formName", label: "Formulário", type: "text" },
+    { key: "status", label: "Status", type: "text" },
+    { key: "startedAt", label: "Data de início", type: "date" },
+    { key: "completedAt", label: "Data de conclusão", type: "date" },
+    { key: "progress", label: "Progresso", type: "percent" },
   ],
   onRowClick: (row) => openFormDrawer(row),
 });

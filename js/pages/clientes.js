@@ -13,6 +13,7 @@ import { escapeHtml } from "../utils/escape.mjs";
 const clientTable = mountInteractiveTable("client-table-host", {
   defaultState: { sortKey: "name", sortDir: "asc" },
   hideSearch: true,
+  exportName: "clientes",
   title: (rows) => `${formatNumber(rows.length)} clientes no recorte`,
   columns: [
     {
@@ -70,6 +71,17 @@ const clientTable = mountInteractiveTable("client-table-host", {
       sortable: true,
       value: (row) => escapeHtml(row.journeyStage || "Não informado"),
     },
+  ],
+  exportColumns: [
+    { key: "name", label: "Cliente", type: "text" },
+    { key: "email", label: "E-mail", type: "text" },
+    { key: "tier", label: "Segmento", type: "text", get: (row) => row.tier || "Dados insuficientes" },
+    { key: "registeredAt", label: "Data de cadastro", type: "date" },
+    { key: "hasWealth", label: "Patrimônio", type: "boolean" },
+    { key: "hasOpenFinance", label: "Open Finance", type: "boolean" },
+    { key: "hasMechanisms", label: "Mecanismos", type: "boolean" },
+    { key: "hasMeetings", label: "Reuniões", type: "boolean" },
+    { key: "journeyStage", label: "Estágio da jornada", type: "text", get: (row) => row.journeyStage || "Não informado" },
   ],
   onRowClick: (client) => openClientDrawer(client),
 });

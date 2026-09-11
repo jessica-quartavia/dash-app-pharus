@@ -12,6 +12,7 @@ import { formatDate } from "../utils/format.mjs";
 
 const paymentsTable = mountInteractiveTable("payments-table-host", {
   defaultState: { sortKey: "date", sortDir: "desc" },
+  exportName: "pagamentos",
   title: (rows) => `${rows.length} registros`,
   rowIdKey: "id",
   columns: [
@@ -19,6 +20,12 @@ const paymentsTable = mountInteractiveTable("payments-table-host", {
     { key: "date", label: "Pagamento", sortable: true, value: (row) => formatDate(row.date) },
     { key: "cycleStart", label: "Início do ciclo", sortable: true, value: (row) => formatDate(row.cycleStart) },
     { key: "cycleEnd", label: "Fim do ciclo", sortable: true, value: (row) => formatDate(row.cycleEnd) },
+  ],
+  exportColumns: [
+    { key: "clientName", label: "Cliente", type: "text" },
+    { key: "date", label: "Pagamento", type: "date" },
+    { key: "cycleStart", label: "Início do ciclo", type: "date" },
+    { key: "cycleEnd", label: "Fim do ciclo", type: "date" },
   ],
   onRowClick: (row) => openPaymentDrawer(row),
 });

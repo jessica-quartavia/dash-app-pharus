@@ -28,6 +28,10 @@ export default [
         Request: "readonly",
         Response: "readonly",
         Buffer: "readonly",
+        Blob: "readonly",
+        CompressionStream: "readonly",
+        TextEncoder: "readonly",
+        TextDecoder: "readonly",
       },
     },
     rules: {
